@@ -1,0 +1,68 @@
+---
+import { weeklySchedule, formatHour } from '@cuf/shared/business';
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const days = weeklySchedule();
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+---
+
+<table class:list={['hours', className]}>
+  <caption class="visually-hidden">Horaires d’ouverture, du lundi au dimanche</caption>
+  <tbody>
+    {
+      days.map((d) => (
+        <tr data-hours-day={d.iso}>
+          <th scope="row">{cap(d.day)}</th>
+          <td class="tabular">{d.open && d.close ? `${formatHour(d.open)} – ${formatHour(d.close)}` : 'Fermé'}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+<style>
+  .hours {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .hours th,
+  .hours td {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .hours td {
+    text-align: right;
+    color: var(--moss);
+  }
+
+  .hours tr:last-child th,
+  .hours tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .hours tr.is-today th,
+  .hours tr.is-today td {
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .hours tr.is-today th::after {
+    content: 'aujourd’hui';
+    margin-left: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--teal-08);
+    color: var(--teal);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    vertical-align: 1px;
+  }
+</style>

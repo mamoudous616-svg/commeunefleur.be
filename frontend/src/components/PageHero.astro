@@ -1,0 +1,95 @@
+---
+// En-tête des pages intérieures : fil d'Ariane, titre léger qui arrive mot à mot, chapô, sur fond parchemin net.
+import { splitWords } from '../lib/words.js';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  crumb: string;
+}
+const { eyebrow, title, lead, crumb } = Astro.props;
+---
+
+<section class="page-hero">
+  <div class="wrap page-hero__inner">
+    <nav class="breadcrumb hero-fade" aria-label="Fil d’Ariane">
+      <ol role="list">
+        <li><a href="/">Accueil</a></li>
+        <li aria-current="page">{crumb}</li>
+      </ol>
+    </nav>
+    <p class="eyebrow hero-fade">{eyebrow}</p>
+    <h1 class="display page-hero__title words-in" set:html={splitWords(title)} />
+    {lead && <p class="lead hero-fade">{lead}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    padding: calc(var(--header-h) + clamp(64px, 10vw, 128px)) 0 clamp(64px, 9vw, 112px);
+  }
+
+  .page-hero__inner {
+    display: grid;
+    gap: var(--stack);
+    justify-items: start;
+  }
+
+  .page-hero__title {
+    max-width: 16ch;
+    font-size: clamp(2.75rem, 1.4rem + 5.4vw, 5.75rem);
+  }
+
+  .page-hero__title :global(em) {
+    font-style: italic;
+  }
+
+  .page-hero__title {
+    --words-delay: 160ms;
+    --words-step: 65ms;
+  }
+
+  .breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--moss);
+  }
+
+  .breadcrumb li + li::before {
+    content: '/';
+    margin-right: 8px;
+    color: var(--line-strong);
+  }
+
+  .breadcrumb a {
+    color: var(--sepia);
+  }
+
+  .hero-fade {
+    animation: rise-soft 800ms var(--ease-out) both;
+  }
+
+  .hero-fade:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .hero-fade:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
+  .hero-fade:nth-child(4) {
+    animation-delay: 210ms;
+  }
+
+  @keyframes rise-soft {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+</style>

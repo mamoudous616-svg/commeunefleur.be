@@ -1,0 +1,96 @@
+---
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { coverFor } from '../lib/photos.js';
+interface Props {
+  offer: any;
+}
+const { offer } = Astro.props;
+const cover = coverFor(offer.id);
+---
+
+<article class="offer-card reveal">
+  <Photo
+    photo={cover}
+    fallback={offer.id}
+    sizes="(min-width: 1200px) 370px, (min-width: 700px) 45vw, 92vw"
+    widths={[360, 480, 640, 800]}
+    class="offer-card__photo"
+  />
+  <div class="offer-card__body">
+    <span class="mono offer-card__index">/{offer.index}</span>
+    <h3 class="h3">
+      <a class="card-link" href={`/offres/#${offer.id}`}>{offer.title}</a>
+    </h3>
+    <p class="muted">{offer.short}</p>
+    <span class="link-arrow" aria-hidden="true">Découvrir <Icon name="arrow" class="arrow" size={16} /></span>
+  </div>
+</article>
+
+<style>
+  .offer-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    transition: background-color var(--dur) var(--ease-out);
+  }
+
+  .offer-card :global(.offer-card__photo) {
+    aspect-ratio: 4 / 3;
+    margin: 12px 12px 0;
+    border-radius: 8px;
+  }
+
+  .offer-card :global(.photo__img),
+  .offer-card :global(.photo__haze) {
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .offer-card:hover :global(.photo__img) {
+    transform: scale(1.04);
+  }
+
+  .offer-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px 28px 32px;
+    flex: 1;
+  }
+
+  .offer-card__index {
+    color: var(--moss);
+  }
+
+  .card-link {
+    text-decoration: none;
+  }
+
+  .card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+  }
+
+  .card-link:focus-visible {
+    outline: none;
+  }
+
+  .card-link:focus-visible::after {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+
+  .offer-card .link-arrow {
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  .offer-card:hover .link-arrow :global(.arrow) {
+    transform: translateX(3px);
+  }
+</style>

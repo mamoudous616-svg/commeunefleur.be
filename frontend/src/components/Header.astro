@@ -1,0 +1,335 @@
+---
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { nav, business } from '../data/site.js';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : !href.includes('#') && path.startsWith(href));
+const [pepiniere, boutique] = business.locations;
+---
+
+<header class="site-header" data-header>
+  <div class="site-header__bar">
+    <a class="brand" href="/" aria-label="Comme Une Fleur, retour à l’accueil">
+      <BrandMark />
+      <span class="brand__name">Comme une fleur</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Navigation principale">
+      <ul role="list">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <a class="btn btn--primary header-cta" href="/contact/#adresses">
+        Nous rendre visite
+        <Icon name="arrow" class="arrow" size={16} />
+      </a>
+      <button class="menu-toggle" type="button" aria-haspopup="dialog" aria-controls="menu-mobile" data-menu-open>
+        <Icon name="menu" size={20} />
+        <span>Menu</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog class="menu-mobile" id="menu-mobile" aria-label="Menu" data-menu>
+  <div class="menu-mobile__top">
+    <a class="brand" href="/" tabindex="-1" aria-hidden="true">
+      <BrandMark />
+      <span class="brand__name">Comme une fleur</span>
+    </a>
+    <button class="menu-toggle menu-toggle--close" type="button" data-menu-close>
+      <Icon name="close" size={20} />
+      <span>Fermer</span>
+    </button>
+  </div>
+  <nav aria-label="Navigation principale (mobile)">
+    <ul role="list" class="menu-mobile__links">
+      {
+        nav.map((item, i) => (
+          <li style={`--i:${i}`}>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+              <Icon name="arrow" size={22} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="menu-mobile__foot">
+    <p class="status" data-open-status><span class="status__dot"></span><span data-open-label>{business.hoursSummary}</span></p>
+    <a href={`tel:${pepiniere.phone}`} class="menu-mobile__phone" data-track="call">
+      <Icon name="phone" size={18} /> Pépinière · {pepiniere.phoneDisplay}
+    </a>
+    <a href={`tel:${boutique.phone}`} class="menu-mobile__phone" data-track="call">
+      <Icon name="phone" size={18} /> Boutique · {boutique.phoneDisplay}
+    </a>
+  </div>
+</dialog>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    padding-top: 0;
+    pointer-events: none;
+    view-transition-name: site-header;
+  }
+
+  .site-header__bar {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    width: min(100% - 2 * var(--gutter), var(--maxw));
+    height: var(--header-h);
+    margin: 0 auto;
+    padding: 0;
+    border-radius: var(--radius-pill);
+    color: var(--sepia);
+    background: transparent;
+    transition:
+      width 520ms var(--ease-out),
+      height 520ms var(--ease-out),
+      margin-top 520ms var(--ease-out),
+      padding 520ms var(--ease-out),
+      background-color 420ms var(--ease-out),
+      color 420ms var(--ease-out);
+  }
+
+  /* Au défilement, la barre se replie en capsule flottante (vert forêt) : la navigation
+     reste à portée de main sans masquer le contenu. */
+  .site-header.is-condensed .site-header__bar {
+    width: min(100% - 24px, 860px);
+    height: 60px;
+    margin-top: 12px;
+    padding: 0 8px 0 20px;
+    background: rgba(35, 41, 27, 0.94);
+    color: var(--parchment);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    backdrop-filter: blur(20px) saturate(1.2);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    flex: none;
+  }
+
+  .brand__name {
+    font-family: var(--font-serif);
+    font-size: 1.375rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .site-nav ul {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    font-size: 0.9375rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color var(--dur) var(--ease-out);
+  }
+
+  .site-nav a:hover {
+    background: var(--teal-08);
+  }
+
+  .site-nav a[aria-current='page'] {
+    background: rgba(39, 26, 0, 0.07);
+  }
+
+  .is-condensed .site-nav a:hover {
+    background: rgba(250, 248, 245, 0.1);
+  }
+
+  .is-condensed .site-nav a[aria-current='page'] {
+    background: rgba(250, 248, 245, 0.14);
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-cta {
+    min-height: 44px;
+  }
+
+  .is-condensed .header-cta {
+    --btn-bg: var(--parchment);
+    --btn-ink: var(--forest);
+    --btn-border: var(--parchment);
+  }
+
+  .is-condensed .header-cta:hover {
+    --btn-bg: var(--white);
+  }
+
+  .menu-toggle {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .is-condensed .menu-toggle {
+    border-color: rgba(250, 248, 245, 0.3);
+    background: transparent;
+    color: var(--parchment);
+  }
+
+  @media (max-width: 960px) {
+    .site-nav,
+    .header-cta {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+    }
+
+    .site-header.is-condensed .site-header__bar {
+      padding: 0 8px 0 16px;
+    }
+  }
+
+  /* Menu mobile plein écran */
+  .menu-mobile {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0 var(--gutter) max(24px, env(safe-area-inset-bottom));
+    border: 0;
+    background: var(--parchment);
+    color: var(--sepia);
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity 280ms var(--ease-out),
+      transform 280ms var(--ease-out),
+      overlay 280ms allow-discrete,
+      display 280ms allow-discrete;
+  }
+
+  .menu-mobile[open] {
+    display: flex;
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .menu-mobile[open] {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  .menu-mobile::backdrop {
+    background: transparent;
+  }
+
+  .menu-mobile__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-h);
+  }
+
+  .menu-toggle--close {
+    display: inline-flex;
+  }
+
+  .menu-mobile__links {
+    margin: clamp(24px, 8vh, 64px) 0 auto;
+    display: grid;
+  }
+
+  .menu-mobile__links li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .menu-mobile__links a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 9vw, 2.75rem);
+    font-weight: 300;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+
+  .menu-mobile__links a[aria-current='page'] {
+    color: var(--teal);
+  }
+
+  .menu-mobile[open] .menu-mobile__links li {
+    animation: menu-in 480ms var(--ease-out) both;
+    animation-delay: calc(80ms + var(--i) * 50ms);
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  .menu-mobile__foot {
+    display: grid;
+    gap: 14px;
+    padding-top: 32px;
+  }
+
+  .menu-mobile__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+</style>

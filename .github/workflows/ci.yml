@@ -1,0 +1,29 @@
+name: Vérifications
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Chaque lundi : vérifie aussi les liens vers les autres sites (Facebook, Google Maps…)
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tests (validation, anti-spam, API, RGPD)
+        run: npm test
+      - name: Construction du site
+        run: npm run build
+      - name: Liens cassés, HTML, accessibilité, contrastes
+        run: npm run check
+      - name: Liens externes
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: npm run check:external -w @cuf/frontend

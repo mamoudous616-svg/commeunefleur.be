@@ -1,0 +1,174 @@
+---
+// Page introuvable : propose (ou applique) la bonne adresse, et signale le lien cassé pour qu'on le répare.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { splitWords } from '../lib/words.js';
+
+const shortcuts = [
+  { href: '/', label: 'Accueil', hint: 'La maison, en bref' },
+  { href: '/offres/', label: 'Nos offres', hint: 'Bouquets, plantes, pépinière…' },
+  { href: '/#galerie', label: 'Galerie', hint: 'Toutes nos photos' },
+  { href: '/contact/', label: 'Contact & horaires', hint: 'Adresses, téléphone, formulaire' },
+];
+---
+
+<BaseLayout
+  title="Page introuvable — Comme Une Fleur"
+  description="Cette page n’existe pas ou plus. Retrouvez nos offres, notre galerie et nos coordonnées."
+  noindex
+>
+  <section class="notfound">
+    <div class="wrap wrap--narrow notfound__inner">
+      <p class="eyebrow">erreur 404</p>
+      <h1 class="display notfound__title words-in" set:html={splitWords('Cette page s’est <em>fanée</em>.')} />
+      <p class="lead">
+        Le lien que vous avez suivi est ancien, ou l’adresse contient une petite faute de frappe. Tout le reste du site
+        est bien en place.
+      </p>
+
+      <div class="notfound__suggest card" hidden data-suggest aria-live="polite">
+        <div class="notfound__ring" hidden data-ring aria-hidden="true">
+          <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" /></svg>
+          <span data-seconds>5</span>
+        </div>
+        <div class="notfound__suggest-text">
+          <p data-suggest-text></p>
+          <div class="btn-row">
+            <a class="btn btn--dark" href="/" data-suggest-link>
+              <span data-suggest-label>Y aller</span>
+              <Icon name="arrow" class="arrow" size={16} />
+            </a>
+            <button type="button" class="btn btn--ghost" hidden data-cancel>Rester ici</button>
+          </div>
+        </div>
+      </div>
+
+      <ul class="notfound__links" role="list">
+        {
+          shortcuts.map((s) => (
+            <li>
+              <a href={s.href}>
+                <span class="notfound__link-label">{s.label}</span>
+                <span class="muted">{s.hint}</span>
+                <Icon name="arrow" class="arrow" size={18} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { initNotFound } from '../scripts/notfound.js';
+  initNotFound();
+</script>
+
+<style>
+  .notfound {
+    padding: calc(var(--header-h) + clamp(72px, 12vw, 144px)) 0 var(--section-y);
+  }
+
+  .notfound__inner {
+    display: grid;
+    gap: var(--stack);
+  }
+
+  .notfound__title {
+    font-size: clamp(2.75rem, 1.4rem + 5.4vw, 5.75rem);
+  }
+
+  .notfound__suggest {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  .notfound__suggest-text {
+    display: grid;
+    gap: 16px;
+  }
+
+  .notfound__ring {
+    position: relative;
+    flex: none;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--teal);
+  }
+
+  .notfound__ring svg {
+    position: absolute;
+    inset: 0;
+    rotate: -90deg;
+  }
+
+  /* L'anneau se vide pendant le compte à rebours : on voit ce qui va se passer, et quand. */
+  .notfound__ring circle {
+    fill: none;
+    stroke: var(--teal);
+    stroke-width: 2;
+    stroke-dasharray: 106.8;
+    stroke-dashoffset: 0;
+    animation: countdown 5s linear forwards;
+  }
+
+  .notfound__suggest.is-cancelled .notfound__ring circle {
+    animation-play-state: paused;
+  }
+
+  @keyframes countdown {
+    to {
+      stroke-dashoffset: 106.8;
+    }
+  }
+
+  .notfound__links {
+    display: grid;
+    margin: clamp(32px, 5vw, 56px) 0 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .notfound__links a {
+    display: grid;
+    grid-template-columns: minmax(0, 12rem) 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 4px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: padding var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+  }
+
+  .notfound__links a:hover {
+    padding-left: 12px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .notfound__link-label {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--slate);
+  }
+
+  @media (max-width: 560px) {
+    .notfound__links a {
+      grid-template-columns: 1fr auto;
+    }
+
+    .notfound__links .muted {
+      display: none;
+    }
+
+    .notfound__suggest {
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+// Page de confirmation (envoi du formulaire sans JavaScript).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<BaseLayout
+  title="Merci — votre message est bien parti · Comme Une Fleur"
+  description="Votre message a bien été envoyé à Comme Une Fleur."
+  noindex
+>
+  <PageHero
+    crumb="Message envoyé"
+    eyebrow="message envoyé"
+    title="Merci, c’est bien <em>parti</em>."
+    lead="Nous avons reçu votre message et vous répondrons au plus vite, à l’adresse e-mail indiquée."
+  >
+    <div class="btn-row">
+      <a class="btn btn--primary" href="/">
+        Retour à l’accueil
+        <Icon name="arrow" class="arrow" size={16} />
+      </a>
+      <a class="btn btn--ghost" href="/offres/">Voir nos offres</a>
+    </div>
+  </PageHero>
+</BaseLayout>

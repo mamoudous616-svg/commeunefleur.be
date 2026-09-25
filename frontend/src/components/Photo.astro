@@ -1,0 +1,114 @@
+---
+// Photo compressée automatiquement (AVIF + WebP, plusieurs largeurs, chargement différé).
+// Pendant le chargement : un fond uni (jamais de flou). Sans photo disponible : fond végétal de la catégorie.
+import { Picture } from 'astro:assets';
+import { hazeFor } from '../lib/photos.js';
+
+interface Props {
+  photo?: any;
+  fallback?: string;
+  sizes: string;
+  widths?: number[];
+  priority?: boolean;
+  class?: string;
+  alt?: string;
+  as?: 'div' | 'span';
+}
+
+const { photo, fallback = 'hero', sizes, widths = [360, 480, 640, 800, 1080, 1440], priority = false, class: className, alt, as: Tag = 'div' } = Astro.props;
+const haze = hazeFor(photo?.category ?? fallback);
+const usableWidths = photo ? widths.filter((w) => w <= photo.asset.width) : [];
+if (photo && !usableWidths.includes(photo.asset.width) && photo.asset.width < Math.max(...widths)) {
+  usableWidths.push(photo.asset.width);
+}
+const focus = photo?.focus ?? 'center';
+const description = alt ?? photo?.alt ?? '';
+---
+
+<Tag class:list={['photo', { 'photo--empty': !photo }, className]} data-photo data-alt={photo ? description : undefined}>
+  {!photo && <img class="photo__haze" src={haze.src} width={haze.width} height={haze.height} alt="" loading="lazy" decoding="async" />}
+  {
+    photo && (
+      <Picture
+        src={photo.asset}
+        alt={description}
+        formats={['avif', 'webp']}
+        widths={usableWidths.length ? usableWidths : undefined}
+        sizes={sizes}
+        quality={72}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchpriority={priority ? 'high' : 'auto'}
+        class:list={['photo__img', `focus-${focus}`]}
+      />
+    )
+  }
+</Tag>
+
+<style is:global>
+  .photo {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    background: var(--ash);
+    isolation: isolate;
+  }
+
+  .photo--empty {
+    background: #7d8f6a;
+  }
+
+  .photo__haze {
+    position: absolute;
+    inset: -10%;
+    width: 120%;
+    height: 120%;
+    max-width: none;
+    object-fit: cover;
+    filter: blur(12px) saturate(1.05);
+    z-index: -1;
+  }
+
+  .photo picture,
+  .photo__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .photo__img {
+    object-fit: cover;
+  }
+
+  .focus-top {
+    object-position: 50% 20%;
+  }
+
+  .focus-bottom {
+    object-position: 50% 80%;
+  }
+
+  .focus-left {
+    object-position: 25% 50%;
+  }
+
+  .focus-right {
+    object-position: 75% 50%;
+  }
+
+  /* Image introuvable : on garde le fond et on affiche la description. */
+  .photo.is-broken .photo__img {
+    opacity: 0;
+  }
+
+  .photo.is-broken::after {
+    content: attr(data-alt);
+    position: absolute;
+    inset: auto 16px 16px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--sepia);
+    font-size: var(--text-small);
+  }
+</style>

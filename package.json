@@ -1,0 +1,23 @@
+{
+  "name": "commeunefleur-be",
+  "private": true,
+  "description": "Site de Comme Une Fleur — fleuriste & pépinière à Ixelles (front statique Astro + API Node séparée).",
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "frontend",
+    "api"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "build": "npm run build -w frontend",
+    "start": "npm start -w api",
+    "test": "npm test -w shared && npm test -w api",
+    "check": "npm run check -w frontend",
+    "photos:import": "npm run photos:import -w frontend",
+    "check:external": "npm run check:external -w @cuf/frontend"
+  }
+}

@@ -1,0 +1,232 @@
+---
+import BrandMark from './BrandMark.astro';
+import Icon from './Icon.astro';
+import { business } from '../data/site.js';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a class="site-footer__logo" href="/">
+          <BrandMark size={30} />
+          <span>Comme une fleur</span>
+        </a>
+        <p>Fleuriste et pépinière à Ixelles, depuis 2002.</p>
+        <a class="site-footer__social" href={business.social.facebook} rel="noopener" target="_blank" data-track="outbound">
+          <Icon name="facebook" size={18} />
+          Facebook
+          <span class="visually-hidden">(nouvel onglet)</span>
+        </a>
+      </div>
+
+      {
+        business.locations.map((loc) => (
+          <div class="site-footer__col">
+            <h2 class="site-footer__title">{loc.name}</h2>
+            <address>
+              {loc.street}
+              <br />
+              {loc.postalCode} {loc.city}
+            </address>
+            <a href={`tel:${loc.phone}`} data-track="call">
+              {loc.phoneDisplay}
+            </a>
+            <a href={loc.mapsUrl} rel="noopener" target="_blank" data-track="directions">
+              Itinéraire<span class="visually-hidden"> vers {loc.name.toLowerCase()} (nouvel onglet)</span>
+            </a>
+          </div>
+        ))
+      }
+
+      <div class="site-footer__col">
+        <h2 class="site-footer__title">Horaires</h2>
+        <p>{business.hoursSummary}</p>
+        <p class="status status--dark" data-open-status>
+          <span class="status__dot"></span><span data-open-label>7 jours sur 7</span>
+        </p>
+        <a href={`mailto:${business.email}`} data-track="email">{business.email}</a>
+      </div>
+    </div>
+
+    <div class="site-footer__legal">
+      <p>© {year} {business.name}</p>
+      <ul role="list">
+        <li><a href="/confidentialite/">Confidentialité</a></li>
+        <li><a href="/cgu/">Conditions d’utilisation</a></li>
+        <li><button type="button" class="linklike" data-consent-open>Gérer les cookies</button></li>
+        <li><a href="/sitemap-index.xml">Plan du site</a></li>
+      </ul>
+    </div>
+  </div>
+  <svg class="site-footer__wordmark reveal" data-reveal-edge viewBox="0 0 1000 150" aria-hidden="true" focusable="false">
+    <text x="500" y="128" text-anchor="middle" textLength="990" lengthAdjust="spacing">Comme une fleur</text>
+  </svg>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    overflow: hidden;
+    background: var(--black);
+    color: var(--ash);
+    padding-top: clamp(80px, 10vw, 128px);
+    font-size: 0.9375rem;
+  }
+
+  .site-footer a,
+  .site-footer .linklike {
+    color: var(--ash);
+    text-decoration-color: rgba(229, 229, 227, 0.3);
+  }
+
+  .site-footer a:hover,
+  .site-footer .linklike:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .site-footer :focus-visible {
+    outline-color: var(--ash);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: clamp(40px, 5vw, 64px);
+  }
+
+  @media (max-width: 960px) {
+    .site-footer__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .site-footer__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .site-footer__brand {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    color: var(--ash-2);
+  }
+
+  .site-footer__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-serif);
+    font-size: 1.625rem;
+    font-weight: 300;
+    text-decoration: none;
+    color: var(--parchment) !important;
+  }
+
+  .site-footer__social {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+  }
+
+  .site-footer__col {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    color: var(--ash-2);
+  }
+
+  .site-footer__col address {
+    font-style: normal;
+    color: var(--ash);
+  }
+
+  .site-footer__col a {
+    width: fit-content;
+  }
+
+  .site-footer__title {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    color: var(--ash-2);
+    margin-bottom: 6px;
+  }
+
+  .status--dark {
+    color: var(--ash);
+  }
+
+  .site-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-top: clamp(64px, 8vw, 104px);
+    padding-top: 28px;
+    border-top: 1px solid rgba(229, 229, 227, 0.14);
+    color: var(--ash-2);
+    font-size: var(--text-small);
+  }
+
+  .site-footer__legal ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 0;
+  }
+
+  .linklike {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Signature décorative (SVG : ignorée par les lecteurs d'écran). */
+  .site-footer__wordmark {
+    display: block;
+    width: calc(100% - 2 * var(--gutter));
+    max-width: 1400px;
+    height: auto;
+    margin: clamp(40px, 6vw, 72px) auto -1.5%;
+    overflow: visible;
+    user-select: none;
+  }
+
+  .site-footer__wordmark text {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 150px;
+    letter-spacing: -0.03em;
+    fill: #161614;
+    stroke: rgba(229, 229, 227, 0);
+    stroke-width: 0.8px;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+
+  /* Le nom se dessine au trait, comme à l'encre, puis se remplit quand on arrive en bas de page. */
+  :global(.js) .site-footer__wordmark.reveal text {
+    transition:
+      stroke-dashoffset 2600ms var(--ease-in-out),
+      fill 1400ms ease 1500ms,
+      stroke 1200ms ease 2100ms;
+  }
+
+  :global(.js) .site-footer__wordmark.reveal:not(.is-visible) text {
+    fill: rgba(22, 22, 20, 0);
+    stroke: rgba(229, 229, 227, 0.45);
+    stroke-dashoffset: 1000;
+  }
+</style>

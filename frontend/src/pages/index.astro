@@ -1,0 +1,1038 @@
+---
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import OpenStatus from '../components/OpenStatus.astro';
+import OfferCard from '../components/OfferCard.astro';
+import Gallery from '../components/Gallery.astro';
+import LocationCard from '../components/LocationCard.astro';
+import HoursTable from '../components/HoursTable.astro';
+import { business, offers, facts, history } from '../data/site.js';
+import { heroPhoto, heroMosaic, hasPhotos, hasIllustrations, photos, hazeFor } from '../lib/photos.js';
+import { organization, locations, website } from '../lib/schema.js';
+import { splitWords } from '../lib/words.js';
+import BrandMark from '../components/BrandMark.astro';
+
+// Héros, trois cas :
+// - une grande photo de la boutique (≥ 1600 px) : plein écran, nette ;
+// - sinon, une mosaïque de photos affichées près de leur taille réelle (nettes elles aussi) ;
+// - tant qu'aucune photo n'est importée, une brume végétale en tient lieu.
+const heroMode = heroPhoto ? 'photo' : heroMosaic.length ? 'mosaic' : 'haze';
+const heroHaze = hazeFor('hero');
+const heroWidths = heroPhoto ? [640, 960, 1280, 1600, 1920, 2400].filter((w) => w <= heroPhoto.asset.width) : [];
+const tileWidths = (p) => {
+  const list = [240, 360, 480, 640, 800, 1000].filter((w) => w <= p.asset.width);
+  return list.length ? list : undefined;
+};
+// Cases visibles selon l'écran : 6 sur téléphone, 8 sur tablette, 10 sur ordinateur.
+const tileClass = (i) => (i >= 8 ? 'hero__tile--desktop' : i >= 6 ? 'hero__tile--tablet' : '');
+const [pepiniere, boutique] = business.locations;
+
+// Chiffres clés qui défilent jusqu'à leur valeur (années : depuis un peu avant ; surfaces : depuis 0).
+const counted = facts.map((fact) => {
+  const m = /^(\d{3,})(.*)$/.exec(fact.value);
+  if (!m) return { ...fact, count: null };
+  const to = Number(m[1]);
+  return { ...fact, count: { to, from: to >= 1900 && to <= 2100 ? to - 22 : 0, suffix: m[2] } };
+});
+
+// Bandeau qui défile entre la présentation et les offres.
+const marquee = ['Bouquets sur mesure', 'Plantes d’intérieur', 'Pépinière de 1000 m²', 'Mariages & événements', 'Entretien de jardins', 'Sapins de Noël'];
+---
+
+<BaseLayout
+  title="Comme Une Fleur — Fleuriste & pépinière à Ixelles, Bruxelles"
+  description="Fleuriste et pépinière de 1000 m² à Ixelles depuis 2002 : bouquets sur mesure, plantes, arbres et arbustes, décoration d’événements et entretien de jardins. Ouvert 7 j/7."
+  jsonLd={[website, organization, ...locations]}
+  bodyClass="has-hero"
+>
+  <!-- Héros : photos nettes (plein écran ou mosaïque), titre léger, infos pratiques en carte -->
+  <section class:list={['hero', `hero--${heroMode}`]} aria-labelledby="hero-title">
+    {
+      heroMode !== 'mosaic' && (
+        <div class="hero__bg" aria-hidden="true">
+          {heroPhoto ? (
+            <Picture
+              src={heroPhoto.asset}
+              alt=""
+              formats={['avif', 'webp']}
+              widths={heroWidths.length ? heroWidths : undefined}
+              sizes="100vw"
+              quality={78}
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              class:list={['hero__photo', `focus-${heroPhoto.focus ?? 'center'}`]}
+            />
+          ) : (
+            <img class="hero__haze" src={heroHaze.src} alt="" width={heroHaze.width} height={heroHaze.height} fetchpriority="high" decoding="async" />
+          )}
+        </div>
+      )
+    }
+    {heroMode !== 'mosaic' && <div class="hero__veil" aria-hidden="true" />}
+
+    <div class="hero__inner wrap">
+      <p class="eyebrow hero__eyebrow hero-in" style="--d:0"><span>fleuriste &amp; pépinière ·</span> <span>ixelles · depuis 2002</span></p>
+      <h1 class="hero__title" id="hero-title">
+        <span class="display hero__display words-in" set:html={splitWords('Comme une <em>fleur</em>')} />
+        <span class="hero__subtitle hero-in" style="--d:4">Fleuriste &amp; pépinière à Ixelles, Bruxelles</span>
+      </h1>
+      <p class="lead lead--ink hero__lead hero-in" style="--d:5">
+        Un jardin de 1000 m² en plein cœur de Bruxelles : bouquets sur mesure, plantes, arbres et arbustes, à des
+        prix accessibles.
+      </p>
+      <div class="btn-row hero__actions hero-in" style="--d:6">
+        <a class="btn btn--primary" href="/offres/">
+          Découvrir nos offres
+          <Icon name="arrow" class="arrow" size={16} />
+        </a>
+        <a class="btn btn--glass" href="#galerie">Voir les photos</a>
+      </div>
+    </div>
+
+    <aside class="hero__card hero-in" style="--d:7" aria-label="Infos pratiques">
+      <OpenStatus />
+      <ul class="hero__places" role="list">
+        {
+          business.locations.map((loc) => (
+            <li>
+              <span class="mono">{loc.name.replace('La ', '')}</span>
+              <a href={`/contact/#${loc.id}`}>{loc.street}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="hero__phone" href={`tel:${pepiniere.phone}`} data-track="call">
+        <Icon name="phone" size={16} />
+        {pepiniere.phoneDisplay}
+      </a>
+    </aside>
+
+    {
+      heroMosaic.map((p, i) => (
+        <div class:list={['hero__tile', tileClass(i)]} style={`--t:${i}`} aria-hidden="true">
+          <Picture
+            src={p.asset}
+            alt=""
+            formats={['avif', 'webp']}
+            widths={tileWidths(p)}
+            sizes="(min-width: 1000px) 17vw, (min-width: 641px) 25vw, 34vw"
+            quality={80}
+            loading={i < 3 ? 'eager' : 'lazy'}
+            fetchpriority="low"
+            decoding="async"
+            class:list={['hero__tile-img', `focus-${p.focus ?? 'center'}`]}
+          />
+        </div>
+      ))
+    }
+  </section>
+
+  <!-- Déclaration + faits clés -->
+  <section class="section intro" aria-labelledby="intro-title">
+    <div class="wrap">
+      <p class="eyebrow reveal">notre maison</p>
+      <h2 class="h2 intro__title reveal" id="intro-title">
+        Plus qu’un fleuriste : une véritable pépinière de 1000 m², installée en plein cœur de Bruxelles.
+      </h2>
+      <dl class="facts" data-reveal-group>
+        {
+          counted.map((fact) => (
+            <div class="facts__item reveal">
+              <dt class="facts__label">{fact.label}</dt>
+              <dd class="facts__value">
+                {fact.count ? (
+                  <>
+                    <span class="visually-hidden">{fact.value}</span>
+                    <span aria-hidden="true" data-count-to={fact.count.to} data-count-from={fact.count.from} data-count-suffix={fact.count.suffix}>
+                      {fact.value}
+                    </span>
+                  </>
+                ) : (
+                  fact.value
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- Bandeau qui défile (décoratif : les offres sont détaillées juste en dessous) -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      {
+        [0, 1].map(() => (
+          <ul class="marquee__list" role="list">
+            {marquee.map((item) => (
+              <li>
+                <span>{item}</span>
+                <BrandMark size={22} class="marquee__mark" />
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- Offres -->
+  <section class="section section--flush-top" aria-labelledby="offres-title">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <div class="stack">
+          <p class="eyebrow reveal">nos offres</p>
+          <h2 class="h2 reveal" id="offres-title">Tout pour faire fleurir la ville.</h2>
+        </div>
+        <p class="lead reveal">
+          Du bouquet du quotidien aux grands événements, en passant par les arbres de votre jardin : voici ce que
+          nous faisons, avec soin, depuis 2002.
+        </p>
+      </div>
+      <div class="offers-grid" data-reveal-group>
+        {offers.map((offer) => <OfferCard offer={offer} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Galerie : toutes les photos -->
+  <section class="section gallery-section" id="galerie" aria-labelledby="galerie-title">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <div class="stack">
+          <p class="eyebrow reveal">galerie</p>
+          <h2 class="h2 reveal" id="galerie-title">La boutique et la pépinière en images.</h2>
+        </div>
+        <p class="lead reveal">
+          {
+            !hasPhotos
+              ? 'Nos fleurs, nos plantes et la pépinière, en photos.'
+              : hasIllustrations
+                ? `Fleurs, plantes et jardins en ${photos.length} photos. Touchez une photo pour l’agrandir.`
+                : `${photos.length} photos de nos fleurs, de nos plantes et de la pépinière. Touchez une photo pour l’agrandir.`
+          }
+        </p>
+      </div>
+      <Gallery />
+    </div>
+  </section>
+
+  <!-- Histoire -->
+  <section class="section history" id="histoire" aria-labelledby="histoire-title">
+    <div class="wrap history__grid">
+      <div class="history__intro">
+        <p class="eyebrow reveal">notre histoire</p>
+        <h2 class="h2 reveal" id="histoire-title">Depuis 2002, des prix accessibles et des créations originales.</h2>
+        <p class="lead reveal">
+          Une maison ixelloise née d’un pari : qu’avec du travail et de la créativité, tout est possible.
+        </p>
+      </div>
+      <ol class="timeline" role="list">
+        {
+          history.map((step) => (
+            <li class="timeline__step reveal">
+              <p class="mono timeline__when">{step.when}</p>
+              <h3 class="h3">{step.title}</h3>
+              <p class="muted">{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Venir nous voir -->
+  <section class="section section--flush-top visit" aria-labelledby="visite-title">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <div class="stack">
+          <p class="eyebrow reveal">venir nous voir</p>
+          <h2 class="h2 reveal" id="visite-title">Deux adresses à Ixelles, ouvertes 7 jours sur 7.</h2>
+        </div>
+        <div class="stack reveal">
+          <OpenStatus />
+          <p class="lead">{business.hoursSummary}</p>
+        </div>
+      </div>
+      <div class="visit__grid" data-reveal-group>
+        <LocationCard location={pepiniere} class="reveal" />
+        <LocationCard location={boutique} class="reveal" />
+        <div class="card visit__hours reveal">
+          <p class="eyebrow">horaires</p>
+          <HoursTable />
+        </div>
+      </div>
+      <div class="cta-band reveal">
+        <p class="cta-band__text serif">Un bouquet à commander, un événement à préparer ?</p>
+        <a class="btn btn--dark" href="/contact/#formulaire">
+          Écrivez-nous
+          <Icon name="arrow" class="arrow" size={16} />
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------- Héros ---------- */
+  .hero {
+    position: relative;
+    display: grid;
+    align-content: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: calc(var(--header-h) + 48px) 0 clamp(150px, 20vh, 200px);
+    overflow: hidden;
+    isolation: isolate;
+    text-align: center;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: #7f9467;
+  }
+
+  .hero__bg :global(picture),
+  .hero__bg :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  /* Uniquement tant qu'aucune photo n'est importée : la brume tient lieu de photo de jardin. */
+  .hero__bg .hero__haze {
+    inset: -6%;
+    width: 112%;
+    height: 112%;
+    filter: blur(20px) saturate(1.1);
+  }
+
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 45%, rgba(250, 248, 245, 0.78), rgba(250, 248, 245, 0.35) 70%, rgba(250, 248, 245, 0.2)),
+      linear-gradient(to bottom, rgba(250, 248, 245, 0) 70%, var(--parchment) 100%);
+  }
+
+  /* Vraie photo : affichée nette. Un halo clair, seulement derrière le texte, garde la lecture
+     confortable ; les bords de la photo restent intacts. */
+  .hero--photo .hero__veil {
+    background:
+      linear-gradient(to bottom, rgba(250, 248, 245, 0.9) 0, rgba(250, 248, 245, 0) 170px),
+      radial-gradient(ellipse 46% 44% at 50% 47%, rgba(250, 248, 245, 0.88), rgba(250, 248, 245, 0.7) 45%, rgba(250, 248, 245, 0) 100%),
+      linear-gradient(to bottom, rgba(250, 248, 245, 0) 82%, var(--parchment) 100%);
+  }
+
+  .hero--photo .hero__title .display {
+    text-shadow: 0 0 32px rgba(250, 248, 245, 0.9);
+  }
+
+  .hero--photo .hero__card {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  @media (max-width: 640px) {
+    .hero--photo .hero__veil {
+      background:
+        linear-gradient(to bottom, rgba(250, 248, 245, 0.9) 0, rgba(250, 248, 245, 0) 140px),
+        radial-gradient(ellipse 90% 42% at 50% 46%, rgba(250, 248, 245, 0.9), rgba(250, 248, 245, 0.72) 55%, rgba(250, 248, 245, 0.1) 100%),
+        linear-gradient(to bottom, rgba(250, 248, 245, 0) 85%, var(--parchment) 100%);
+    }
+  }
+
+  /* Mosaïque : des photos nettes, sans voile ni flou, encadrent un titre posé sur le parchemin.
+     Chaque case affiche la photo près de sa taille réelle, pour rester nette même sur écran Retina. */
+  .hero--mosaic {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: minmax(120px, 1fr) auto minmax(120px, 1fr);
+    align-content: stretch;
+    gap: 16px;
+    padding: calc(var(--header-h) + 4px) 16px 16px;
+  }
+
+  /* Le titre s'adapte aussi à la hauteur de l'écran : photos du haut et du bas visibles d'un coup d'œil. */
+  .hero--mosaic .hero__inner {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    gap: clamp(16px, 2.6vh, 30px);
+    padding-block: clamp(12px, 3vh, 48px);
+  }
+
+  .hero--mosaic .hero__title .display {
+    font-size: min(clamp(3.5rem, 1.4rem + 8.4vw, 7.5rem), 14vh);
+  }
+
+  @media (min-width: 1000px) {
+    .hero--mosaic .hero__lead {
+      max-width: 56ch;
+    }
+  }
+
+  .hero__tile {
+    position: relative;
+    min-height: 0;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--ash);
+    animation: tile-in 1000ms var(--ease-out) both;
+    animation-delay: calc(100ms + var(--t, 0) * 60ms);
+  }
+
+  .hero__tile :global(picture),
+  .hero__tile :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+
+  /* La carte d'infos pratiques devient une case blanche de la mosaïque.
+     Statut et téléphone sur une ligne (le téléphone passe dessous si la place manque), adresses en dessous. */
+  .hero--mosaic .hero__card {
+    position: static;
+    grid-row: 3;
+    grid-column: 3 / 5;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+    gap: 14px 16px;
+    width: auto;
+    max-width: none;
+    translate: none;
+    padding: 20px 24px;
+    border: 0;
+    background: var(--white);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .hero--mosaic .hero__phone {
+    order: 1;
+  }
+
+  .hero--mosaic .hero__places {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 999px) {
+    .hero--mosaic {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: minmax(130px, 1fr) auto auto minmax(130px, 1fr);
+    }
+
+    .hero--mosaic .hero__card {
+      grid-column: 1 / -1;
+      justify-self: center;
+      width: min(100%, 560px);
+    }
+
+    .hero__tile--desktop {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero--mosaic {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: minmax(100px, 1fr) auto auto minmax(100px, 1fr);
+      gap: 10px;
+      padding: calc(var(--header-h) - 4px) 12px 12px;
+    }
+
+    .hero__tile {
+      border-radius: 8px;
+    }
+
+    .hero__tile--tablet {
+      display: none;
+    }
+
+    .hero--mosaic .hero__card {
+      width: 100%;
+      padding: 18px 20px;
+    }
+  }
+
+  .hero__inner {
+    display: grid;
+    justify-items: center;
+    gap: clamp(20px, 2.6vw, 30px);
+  }
+
+  .hero__eyebrow {
+    color: var(--sepia);
+  }
+
+  /* Sur petit écran, la ligne se coupe entre deux groupes, jamais au milieu. */
+  .hero__eyebrow span {
+    white-space: nowrap;
+  }
+
+  .hero__eyebrow::before {
+    color: rgba(39, 26, 0, 0.4);
+  }
+
+  .hero__title {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    font-weight: inherit;
+  }
+
+  .hero__title .display {
+    font-size: clamp(3.5rem, 1.4rem + 8.4vw, 7.5rem);
+    line-height: 0.95;
+    color: var(--sepia);
+  }
+
+  .hero__subtitle {
+    font-family: var(--font-sans);
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    font-weight: 500;
+    letter-spacing: var(--track-sans);
+    color: var(--sepia);
+  }
+
+  .hero__lead {
+    max-width: 44ch;
+    margin-inline: auto;
+  }
+
+  .hero__actions {
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  /* Entrée échelonnée : l'œil lit le titre, puis le texte, puis les actions. */
+  .hero-in {
+    animation: rise 900ms var(--ease-out) both;
+    animation-delay: calc(80ms + var(--d, 0) * 90ms);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+  }
+
+  /* « Comme une fleur » : les mots montent un à un, « fleur » en dernier. */
+  .hero__display {
+    --words-delay: 180ms;
+    --words-step: 120ms;
+  }
+
+  /* Ouverture façon cinéma : la photo se pose lentement (léger recul). */
+  .hero--photo .hero__bg :global(img) {
+    animation: hero-settle 2800ms var(--ease-out) both;
+  }
+
+  @keyframes hero-settle {
+    from {
+      transform: scale(1.12);
+    }
+  }
+
+  /* Au défilement (navigateurs compatibles) : la photo s'éloigne plus lentement que la page,
+     le texte s'efface en montant. Donne de la profondeur sans script. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero {
+        view-timeline-name: --hero;
+      }
+
+      .hero--photo .hero__bg {
+        animation: hero-depth linear both;
+        animation-timeline: --hero;
+        animation-range: exit 0% exit 100%;
+      }
+
+      .hero--photo .hero__inner {
+        animation: hero-away linear both;
+        animation-timeline: --hero;
+        animation-range: exit 0% exit 75%;
+      }
+    }
+  }
+
+  @keyframes hero-depth {
+    to {
+      transform: translate3d(0, 24%, 0) scale(1.06);
+    }
+  }
+
+  @keyframes hero-away {
+    to {
+      opacity: 0;
+      transform: translate3d(0, -10vh, 0);
+    }
+  }
+
+  .hero__card {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(20px, 4vh, 40px);
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 24px 32px;
+    width: max-content;
+    max-width: calc(100% - 2 * var(--gutter));
+    padding: 14px 16px 14px 24px;
+    border: 1px solid rgba(39, 26, 0, 0.12);
+    border-radius: var(--radius-card);
+    background: rgba(255, 255, 255, 0.62);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    backdrop-filter: blur(20px) saturate(1.2);
+    text-align: left;
+    font-size: var(--text-small);
+  }
+
+  .hero__places {
+    display: flex;
+    gap: 24px;
+    margin: 0;
+  }
+
+  .hero__places li {
+    display: grid;
+    gap: 2px;
+  }
+
+  .hero__places .mono {
+    color: var(--moss);
+    text-transform: lowercase;
+  }
+
+  .hero__places a {
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .hero__places a:hover {
+    text-decoration: underline;
+  }
+
+  .hero__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    background: var(--forest);
+    color: var(--parchment);
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .hero__phone:hover {
+    background: var(--teal);
+  }
+
+  @media (max-width: 860px) {
+    .hero__card {
+      flex-wrap: wrap;
+      justify-content: center;
+      width: calc(100% - 2 * var(--gutter));
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .hero__places {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .hero__card :global(.status) {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero__places {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  /* Téléphone, fond photo : la carte suit le texte au lieu de flotter en bas de l'écran,
+     sinon elle recouvrirait le bouton « Voir les photos ». */
+  @media (max-width: 640px) {
+    .hero--photo,
+    .hero--haze {
+      padding-bottom: 24px;
+    }
+
+    .hero--photo .hero__card,
+    .hero--haze .hero__card {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      translate: none;
+      width: calc(100% - 2 * var(--gutter));
+      margin: clamp(28px, 5vh, 48px) auto 0;
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 860px) {
+    .hero--mosaic .hero__card {
+      text-align: left;
+    }
+
+    .hero--mosaic .hero__card :global(.status) {
+      width: auto;
+    }
+  }
+
+  /* Téléphone : tout est centré et l'appel passe en dernier, sous les adresses. */
+  @media (max-width: 480px) {
+    .hero--mosaic .hero__card {
+      justify-content: center;
+    }
+
+    .hero--mosaic .hero__phone {
+      order: 3;
+    }
+  }
+
+  /* ---------- Introduction ---------- */
+  .intro__title {
+    max-width: 22ch;
+    margin-top: var(--stack);
+    font-size: clamp(2rem, 1.2rem + 3vw, 3.75rem);
+    line-height: 1.1;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-top: clamp(64px, 9vw, 120px);
+    border-top: 1px solid var(--line);
+  }
+
+  .facts__item {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 28px 24px 0 0;
+  }
+
+  .facts__item + .facts__item {
+    padding-left: 24px;
+    border-left: 1px solid var(--line);
+  }
+
+  .facts__value {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
+    white-space: nowrap;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--slate);
+  }
+
+  .facts__label {
+    font-size: 0.9375rem;
+    color: var(--moss);
+    max-width: 22ch;
+  }
+
+  @media (max-width: 820px) {
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .facts__item {
+      padding-right: 12px;
+    }
+
+    .facts__item + .facts__item {
+      padding-left: 16px;
+    }
+
+    .facts__item:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+
+    .facts__item:nth-child(n + 3) {
+      margin-top: 32px;
+      border-top: 1px solid var(--line);
+    }
+  }
+
+  /* ---------- Bandeau qui défile ---------- */
+  .marquee {
+    margin-bottom: clamp(72px, 10vw, 136px);
+    padding-block: clamp(22px, 3vw, 34px);
+    border-block: 1px solid var(--line);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 56s linear infinite;
+  }
+
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee__list {
+    display: flex;
+    flex: none;
+    margin: 0;
+  }
+
+  .marquee__list li {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 3.4vw, 48px);
+    padding-right: clamp(24px, 3.4vw, 48px);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--slate);
+    white-space: nowrap;
+  }
+
+  .marquee__list :global(.marquee__mark) {
+    flex: none;
+    color: var(--moss);
+    animation: mark-spin 18s linear infinite;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes mark-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ---------- Offres ---------- */
+  .offers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  @media (max-width: 1000px) {
+    .offers-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .offers-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---------- Galerie ---------- */
+  .gallery-section {
+    background: var(--white);
+  }
+
+  .gallery-section :global(.chip:not([aria-pressed='true'])) {
+    background: var(--parchment);
+    border-color: transparent;
+  }
+
+  .gallery-section :global(.chip:not([aria-pressed='true']):hover) {
+    border-color: var(--teal);
+  }
+
+  /* ---------- Histoire ---------- */
+  .history__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(48px, 8vw, 128px);
+    align-items: start;
+  }
+
+  .history__intro {
+    display: grid;
+    gap: var(--stack);
+    position: sticky;
+    top: calc(var(--header-h) + 48px);
+  }
+
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: clamp(48px, 6vw, 72px);
+    margin: 0;
+    padding: 8px 0 0 36px;
+  }
+
+  /* Le fil se dessine au rythme du défilement (navigateurs compatibles). */
+  .timeline::before,
+  .timeline::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 14px;
+    bottom: 12px;
+    width: 1px;
+    background: var(--line);
+  }
+
+  .timeline::after {
+    background: var(--teal);
+    transform-origin: top;
+    transform: scaleY(1);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .timeline::after {
+        animation: draw-line linear both;
+        animation-timeline: view();
+        animation-range: entry 20% cover 60%;
+      }
+    }
+  }
+
+  @keyframes draw-line {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .timeline__step {
+    position: relative;
+    display: grid;
+    gap: 10px;
+  }
+
+  .timeline__step::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 5px;
+    width: 11px;
+    height: 11px;
+    border: 1px solid var(--teal);
+    border-radius: 50%;
+    background: var(--parchment);
+    z-index: 1;
+  }
+
+  /* Chaque étape s'allume quand elle arrive à l'écran. */
+  :global(.js) .timeline__step.reveal::before {
+    transform: scale(0);
+    transition:
+      transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 250ms,
+      background-color 700ms var(--ease-out) 250ms;
+  }
+
+  :global(.js) .timeline__step.reveal.is-visible::before {
+    transform: none;
+    background: var(--teal);
+  }
+
+  .timeline__when {
+    color: var(--teal);
+  }
+
+  @media (max-width: 860px) {
+    .history__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .history__intro {
+      position: static;
+    }
+  }
+
+  /* ---------- Visite ---------- */
+  .visit__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .visit__hours {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  @media (max-width: 1000px) {
+    .visit__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .visit__hours {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .visit__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cta-band {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: clamp(64px, 8vw, 104px);
+    padding-top: clamp(40px, 5vw, 56px);
+    border-top: 1px solid var(--line);
+  }
+
+  .cta-band__text {
+    font-size: clamp(1.625rem, 1.2rem + 1.6vw, 2.5rem);
+    font-weight: 300;
+    line-height: 1.15;
+    color: var(--slate);
+    max-width: 24ch;
+  }
+</style>

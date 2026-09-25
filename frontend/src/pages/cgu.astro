@@ -1,0 +1,173 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import Todo from '../components/Todo.astro';
+import { business } from '../data/site.js';
+import { illustrations, hasIllustrations } from '../lib/photos.js';
+
+const toc = [
+  { id: 'editeur', label: 'Éditeur du site' },
+  { id: 'objet', label: 'Objet' },
+  { id: 'acces', label: 'Accès au site' },
+  { id: 'informations', label: 'Informations et photos' },
+  { id: 'formulaire', label: 'Formulaire de contact' },
+  { id: 'propriete', label: hasIllustrations ? 'Propriété intellectuelle et crédits' : 'Propriété intellectuelle' },
+  { id: 'liens', label: 'Liens externes' },
+  { id: 'responsabilite', label: 'Responsabilité' },
+  { id: 'donnees', label: 'Données personnelles' },
+  { id: 'droit', label: 'Droit applicable' },
+  { id: 'modifications', label: 'Modifications' },
+];
+---
+
+<LegalLayout
+  title="Conditions d’utilisation et mentions légales — Comme Une Fleur"
+  description="Mentions légales et conditions d’utilisation du site commeunefleur.be : éditeur, accès, propriété intellectuelle, responsabilité et droit applicable."
+  crumb="Conditions d’utilisation"
+  heading="Conditions <em>d’utilisation</em>."
+  lead="Les règles du jeu du site commeunefleur.be, et les informations légales sur son éditeur."
+  updated="25 septembre 2026"
+  toc={toc}
+>
+  <h2 id="editeur">1. Éditeur du site (mentions légales)</h2>
+  <dl>
+    <dt>Nom commercial</dt>
+    <dd>{business.name}</dd>
+    <dt>Dénomination</dt>
+    <dd><Todo value={business.legal.companyName} label="dénomination et forme juridique à compléter" /></dd>
+    <dt>Adresses</dt>
+    <dd>
+      {business.locations.map((loc, i) => (
+        <>
+          {i > 0 && <br />}
+          {loc.street}, {loc.postalCode} {loc.city} ({loc.name.toLowerCase()})
+        </>
+      ))}
+    </dd>
+    <dt>Siège social</dt>
+    <dd><Todo value={business.legal.registeredOffice} /></dd>
+    <dt>Téléphone</dt>
+    <dd>
+      {business.locations.map((loc, i) => (
+        <>
+          {i > 0 && ' · '}
+          <a href={`tel:${loc.phone}`}>{loc.phoneDisplay}</a>
+        </>
+      ))}
+    </dd>
+    <dt>E-mail</dt>
+    <dd><a href={`mailto:${business.email}`}>{business.email}</a></dd>
+    <dt>N° d’entreprise (BCE)</dt>
+    <dd><Todo value={business.legal.bce} /></dd>
+    <dt>N° de TVA</dt>
+    <dd><Todo value={business.legal.vat} /></dd>
+    <dt>Hébergement</dt>
+    <dd><Todo value={business.legal.host} label="nom, adresse et contact de l’hébergeur à compléter" /></dd>
+  </dl>
+
+  <h2 id="objet">2. Objet</h2>
+  <p>
+    Les présentes conditions encadrent l’utilisation du site commeunefleur.be, qui présente la boutique et la pépinière
+    {business.name}, leurs offres et leurs coordonnées. En naviguant sur le site, vous acceptez ces conditions.
+  </p>
+
+  <h2 id="acces">3. Accès au site</h2>
+  <p>
+    Le site est accessible gratuitement, en principe à tout moment. Nous pouvons l’interrompre pour maintenance ou en
+    cas de problème technique, sans que cela ouvre droit à une indemnité. Les frais de connexion restent à votre charge.
+  </p>
+
+  <h2 id="informations">4. Informations et photos</h2>
+  <p>
+    Les informations publiées (offres, horaires, disponibilités saisonnières) sont données à titre indicatif et peuvent
+    évoluer, notamment selon les saisons et les arrivages.
+    {
+      hasIllustrations
+        ? 'Les photos du site sont, pour le moment, des photos d’illustration (voir « Crédits photos ») : elles ne montrent pas nos créations et ne sont pas contractuelles.'
+        : 'Les photos présentent des réalisations et l’ambiance de la boutique et de la pépinière : elles ne sont pas contractuelles, chaque création étant composée à la main avec les fleurs du moment.'
+    }
+  </p>
+  <p>
+    Le site ne permet ni de commander ni de payer en ligne : toute commande est confirmée directement avec nous, par
+    téléphone, par e-mail ou sur place.
+  </p>
+
+  <h2 id="formulaire">5. Formulaire de contact</h2>
+  <p>
+    Le formulaire sert à nous poser une question ou à nous présenter un projet. Merci d’y indiquer des informations
+    exactes et de ne pas l’utiliser pour envoyer de la publicité, des contenus illicites ou des messages au nom d’un
+    tiers. Des protections automatiques filtrent les envois abusifs ; nous pouvons ne pas donner suite à un message
+    manifestement abusif.
+  </p>
+
+  <h2 id="propriete">6. Propriété intellectuelle{hasIllustrations && ' et crédits'}</h2>
+  <p>
+    Les textes, photos, logo et éléments graphiques du site appartiennent à {business.name} ou à leurs auteurs. Toute
+    reproduction, même partielle, nécessite notre accord écrit préalable. Vous pouvez bien sûr partager librement un
+    lien vers une page du site.
+  </p>
+  {
+    hasIllustrations && (
+      <>
+        <h3 id="credits">Crédits photos</h3>
+        <p>
+          En attendant les photos de la boutique, le site est illustré par des photos de fleurs publiées par leurs
+          auteurs sous licence{' '}
+          <a href="https://creativecommons.org/licenses/by/2.0/deed.fr" rel="noopener" target="_blank">Creative Commons Attribution 2.0<span class="visually-hidden"> (nouvel onglet)</span></a>.
+          Elles ont été recadrées, redimensionnées et compressées pour le site ; elles restent la propriété de leurs
+          auteurs, que nous remercions :
+        </p>
+        <ul class="credits">
+          {illustrations.map((p) => (
+            <li>
+              <a href={p.credit.url} rel="noopener" target="_blank">
+                {p.alt}
+                <span class="visually-hidden"> (nouvel onglet)</span>
+              </a>{' '}
+              — {p.credit.author}
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+
+  <h2 id="liens">7. Liens externes</h2>
+  <p>
+    Le site renvoie vers des services tiers (Google Maps pour les itinéraires, Facebook, Autorité de protection des
+    données). Nous ne contrôlons pas leur contenu et déclinons toute responsabilité à leur égard.
+  </p>
+
+  <h2 id="responsabilite">8. Responsabilité</h2>
+  <p>
+    Nous faisons de notre mieux pour que les informations du site soient exactes et à jour, sans pouvoir le garantir
+    en permanence. Dans les limites prévues par la loi, {business.name} ne peut être tenue responsable des dommages
+    indirects liés à l’utilisation du site ou à son indisponibilité. Il vous appartient de protéger votre équipement
+    (antivirus, mises à jour).
+  </p>
+
+  <h2 id="donnees">9. Données personnelles</h2>
+  <p>
+    La manière dont nous traitons vos données est décrite dans notre
+    <a href="/confidentialite/">politique de confidentialité</a>.
+  </p>
+
+  <h2 id="droit">10. Droit applicable et litiges</h2>
+  <p>
+    Ces conditions sont soumises au droit belge. En cas de désaccord, contactez-nous d’abord : nous chercherons une
+    solution à l’amiable. À défaut, les tribunaux de l’arrondissement judiciaire de Bruxelles sont compétents, sans
+    préjudice des règles protectrices dont bénéficient les consommateurs, qui peuvent aussi s’adresser au Service de
+    médiation pour le consommateur (<a href="https://www.mediationconsommateur.be" rel="noopener" target="_blank">mediationconsommateur.be<span class="visually-hidden"> (nouvel onglet)</span></a>).
+  </p>
+
+  <h2 id="modifications">11. Modifications</h2>
+  <p>
+    Nous pouvons modifier ces conditions à tout moment ; la version en ligne est celle qui s’applique. La date de la
+    dernière mise à jour figure en haut de la page.
+  </p>
+</LegalLayout>
+
+<style>
+  .credits {
+    font-size: var(--text-small);
+  }
+</style>

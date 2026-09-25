@@ -2,9 +2,7 @@
 // Page introuvable : propose (ou applique) la bonne adresse, et signale le lien cassé pour qu'on le répare.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-import { hazeFor } from '../lib/photos.js';
 
-const bg = hazeFor('evenements');
 const shortcuts = [
   { href: '/', label: 'Accueil', hint: 'La maison, en bref' },
   { href: '/offres/', label: 'Nos offres', hint: 'Bouquets, plantes, pépinière…' },
@@ -19,9 +17,6 @@ const shortcuts = [
   noindex
 >
   <section class="notfound">
-    <div class="notfound__bg" aria-hidden="true">
-      <img src={bg.src} alt="" width={bg.width} height={bg.height} />
-    </div>
     <div class="wrap wrap--narrow notfound__inner">
       <p class="eyebrow">erreur 404</p>
       <h1 class="display notfound__title">Cette page s’est <em>fanée</em>.</h1>
@@ -71,30 +66,7 @@ const shortcuts = [
 
 <style>
   .notfound {
-    position: relative;
-    isolation: isolate;
     padding: calc(var(--header-h) + clamp(72px, 12vw, 144px)) 0 var(--section-y);
-  }
-
-  .notfound__bg {
-    position: absolute;
-    inset: 0 0 auto;
-    height: 560px;
-    z-index: -1;
-    overflow: hidden;
-    opacity: 0.7;
-    -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
-    mask-image: linear-gradient(to bottom, #000, transparent);
-  }
-
-  .notfound__bg img {
-    position: absolute;
-    inset: -10%;
-    width: 120%;
-    height: 120%;
-    max-width: none;
-    object-fit: cover;
-    filter: blur(24px);
   }
 
   .notfound__inner {

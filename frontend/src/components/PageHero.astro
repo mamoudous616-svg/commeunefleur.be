@@ -1,23 +1,16 @@
 ---
-// En-tête des pages intérieures : fil d'Ariane, titre léger, chapô. Une brume végétale très douce
-// en haut de page rappelle l'accueil sans charger l'écran.
-import { hazeFor } from '../lib/photos.js';
+// En-tête des pages intérieures : fil d'Ariane, titre léger, chapô, sur fond parchemin net.
 
 interface Props {
   eyebrow: string;
   title: string;
   lead?: string;
   crumb: string;
-  haze?: string;
 }
-const { eyebrow, title, lead, crumb, haze = 'hero' } = Astro.props;
-const bg = hazeFor(haze);
+const { eyebrow, title, lead, crumb } = Astro.props;
 ---
 
 <section class="page-hero">
-  <div class="page-hero__bg" aria-hidden="true">
-    <img src={bg.src} alt="" width={bg.width} height={bg.height} decoding="async" fetchpriority="high" />
-  </div>
   <div class="wrap page-hero__inner">
     <nav class="breadcrumb hero-fade" aria-label="Fil d’Ariane">
       <ol role="list">
@@ -34,30 +27,7 @@ const bg = hazeFor(haze);
 
 <style>
   .page-hero {
-    position: relative;
-    isolation: isolate;
     padding: calc(var(--header-h) + clamp(64px, 10vw, 128px)) 0 clamp(64px, 9vw, 112px);
-  }
-
-  .page-hero__bg {
-    position: absolute;
-    inset: 0 0 auto;
-    height: min(520px, 70%);
-    z-index: -1;
-    overflow: hidden;
-    opacity: 0.5;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
-  }
-
-  .page-hero__bg img {
-    position: absolute;
-    inset: -10%;
-    width: 120%;
-    height: 120%;
-    max-width: none;
-    object-fit: cover;
-    filter: blur(24px);
   }
 
   .page-hero__inner {

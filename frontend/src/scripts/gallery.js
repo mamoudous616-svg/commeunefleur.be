@@ -91,6 +91,7 @@ function initLightbox(root, items, visibleItems) {
   const webp = dialog.querySelector('[data-lightbox-webp]');
   const caption = dialog.querySelector('[data-lightbox-caption]');
   const count = dialog.querySelector('[data-lightbox-count]');
+  const credit = dialog.querySelector('[data-lightbox-credit]');
   const stage = dialog.querySelector('[data-lightbox-stage]');
   let list = [];
   let index = 0;
@@ -105,6 +106,8 @@ function initLightbox(root, items, visibleItems) {
     if (thumbSrc) img.src = thumbSrc;
     img.width = Number(item.dataset.w);
     img.height = Number(item.dataset.h);
+    // Petites photos (illustrations) : pas agrandies au-delà de ce qui reste net.
+    img.style.maxWidth = item.dataset.max ? `min(100%, ${item.dataset.max}px)` : '';
     img.alt = alt;
     requestAnimationFrame(() => {
       avif.srcset = item.dataset.avif;
@@ -114,6 +117,15 @@ function initLightbox(root, items, visibleItems) {
     });
     caption.textContent = alt;
     count.textContent = `${index + 1} / ${list.length}`;
+    // Photos sous licence libre : auteur et licence, avec le lien vers l'original.
+    if (credit) {
+      credit.hidden = !item.dataset.credit;
+      if (item.dataset.credit) {
+        credit.textContent = item.dataset.credit;
+        credit.setAttribute('aria-label', `${item.dataset.credit} (nouvel onglet)`);
+        credit.href = item.dataset.creditUrl;
+      }
+    }
   }
 
   function open(item) {

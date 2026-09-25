@@ -8,11 +8,13 @@
 // Chaque photo est : redressée (EXIF), réduite à 2400 px maximum, recompressée en JPEG progressif,
 // débarrassée de ses métadonnées (dont la localisation GPS), puis décrite dans src/data/photos.json
 // (catégorie + texte alternatif). Le site en tire ensuite des versions AVIF/WebP à la bonne taille.
-// Les réglages faits à la main dans photos.json (alt, catégorie, featured, hero, hidden) sont conservés.
+// Les réglages faits à la main dans photos.json (alt, catégorie, featured, hero, hidden, focus, mosaic, cover)
+// sont conservés. Les photos d'illustration (banque d'images libre, « illustration: true ») sont retirées
+// automatiquement dès que de vraies photos sont importées.
 
 import sharp from 'sharp';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile, stat } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import { slugify } from '@cuf/shared/text';
@@ -292,6 +294,8 @@ async function main() {
           ...(existing?.hero ? { hero: true } : {}),
           ...(existing?.hidden ? { hidden: true } : {}),
           ...(existing?.focus ? { focus: existing.focus } : {}),
+          ...(existing?.mosaic ? { mosaic: existing.mosaic } : {}),
+          ...(existing?.cover ? { cover: existing.cover } : {}),
         };
         if (existing) {
           Object.assign(existing, entry);
@@ -309,6 +313,17 @@ async function main() {
     }
   }
   await Promise.all([worker(), worker(), worker(), worker()]);
+
+  // De vraies photos sont là : les photos d'illustration leur laissent la place.
+  let removed = 0;
+  if (stats.added + stats.updated > 0) {
+    for (const entry of manifest.filter((p) => p.illustration)) {
+      await rm(new URL(entry.file, PHOTOS_DIR), { force: true });
+      manifest.splice(manifest.indexOf(entry), 1);
+      removed += 1;
+    }
+    if (removed) console.log(`  ${removed} photo(s) d’illustration retirée(s) : place aux vraies photos.`);
+  }
 
   // Une photo mise en avant par catégorie si aucune ne l'est encore.
   for (const category of Object.keys(ALT_BY_CATEGORY)) {

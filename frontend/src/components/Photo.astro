@@ -1,6 +1,6 @@
 ---
 // Photo compressée automatiquement (AVIF + WebP, plusieurs largeurs, chargement différé).
-// Sans photo disponible : fond végétal flou de la catégorie (décoratif).
+// Pendant le chargement : un fond uni (jamais de flou). Sans photo disponible : fond végétal de la catégorie.
 import { Picture } from 'astro:assets';
 import { hazeFor } from '../lib/photos.js';
 
@@ -25,8 +25,8 @@ const focus = photo?.focus ?? 'center';
 const description = alt ?? photo?.alt ?? '';
 ---
 
-<Tag class:list={['photo', className]} data-photo data-alt={photo ? description : undefined}>
-  <img class="photo__haze" src={haze.src} width={haze.width} height={haze.height} alt="" loading="lazy" decoding="async" />
+<Tag class:list={['photo', { 'photo--empty': !photo }, className]} data-photo data-alt={photo ? description : undefined}>
+  {!photo && <img class="photo__haze" src={haze.src} width={haze.width} height={haze.height} alt="" loading="lazy" decoding="async" />}
   {
     photo && (
       <Picture
@@ -50,8 +50,12 @@ const description = alt ?? photo?.alt ?? '';
     display: block;
     position: relative;
     overflow: hidden;
-    background: #7d8f6a;
+    background: var(--ash);
     isolation: isolate;
+  }
+
+  .photo--empty {
+    background: #7d8f6a;
   }
 
   .photo__haze {
@@ -92,7 +96,7 @@ const description = alt ?? photo?.alt ?? '';
     object-position: 75% 50%;
   }
 
-  /* Image introuvable : on garde le fond végétal et on affiche la description. */
+  /* Image introuvable : on garde le fond et on affiche la description. */
   .photo.is-broken .photo__img {
     opacity: 0;
   }

@@ -3,7 +3,7 @@
 import { getImage } from 'astro:assets';
 import Photo from './Photo.astro';
 import Icon from './Icon.astro';
-import { photos, hazeFor } from '../lib/photos.js';
+import { photos, hasIllustrations, hazeFor } from '../lib/photos.js';
 import { categories } from '../data/site.js';
 
 const INITIAL = 12;
@@ -30,6 +30,12 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
   {
     items.length > 0 ? (
       <>
+        {hasIllustrations && (
+          <p class="gallery__notice">
+            Photos d’illustration sous licence libre, en attendant celles de la boutique et de la pépinière ·{' '}
+            <a href="/cgu/#credits">crédits photos</a>
+          </p>
+        )}
         <div class="gallery__filters" role="group" aria-label="Filtrer les photos par thème">
           <button type="button" class="chip" aria-pressed="true" data-filter="all">
             Tout <span class="count">{items.length}</span>
@@ -53,6 +59,9 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
               data-src={p.src}
               data-w={p.asset.width}
               data-h={p.asset.height}
+              data-max={p.illustration ? 760 : undefined}
+              data-credit={p.credit ? `Photo : ${p.credit.author} · ${p.credit.license}` : undefined}
+              data-credit-url={p.credit?.url}
               hidden={i >= INITIAL}
             >
               <button type="button" class="gallery__open" data-open={i}>
@@ -97,6 +106,9 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
               </picture>
               <figcaption class="lightbox__caption">
                 <span data-lightbox-caption />
+                <a class="lightbox__credit" href="/cgu/#credits" target="_blank" rel="noopener noreferrer" data-lightbox-credit hidden>
+                  Crédits photos
+                </a>
                 <span class="mono lightbox__count" data-lightbox-count />
               </figcaption>
             </figure>
@@ -114,7 +126,7 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
       </>
     ) : (
       <>
-        <p class="gallery__notice mono">
+        <p class="gallery__notice gallery__notice--mono mono">
           Aperçu — les photos de commeunefleur.be s’afficheront ici après import (npm run photos:import).
         </p>
         <ul class="gallery__grid gallery__grid--mood" role="list" data-reveal-group>
@@ -234,8 +246,17 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
   }
 
   .gallery__notice {
-    margin-bottom: 24px;
+    margin: 0 0 24px;
+    font-size: var(--text-small);
     color: var(--moss);
+  }
+
+  .gallery__notice a {
+    color: inherit;
+  }
+
+  .gallery__notice--mono {
+    font-size: inherit;
   }
 
   .gallery__mood {
@@ -352,6 +373,20 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
   .lightbox__count {
     color: var(--ash-2);
     white-space: nowrap;
+  }
+
+  .lightbox__credit {
+    color: var(--ash-2);
+    white-space: nowrap;
+    text-underline-offset: 3px;
+  }
+
+  .lightbox__credit:hover {
+    color: var(--parchment);
+  }
+
+  .lightbox__credit:focus-visible {
+    outline-color: var(--parchment);
   }
 
   .lightbox__btn {

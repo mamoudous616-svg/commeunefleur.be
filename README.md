@@ -2,7 +2,7 @@
 
 Site de **Comme Une Fleur**, fleuriste et pépinière de 1000 m² à Ixelles (Bruxelles) depuis 2002.
 Design inspiré de la référence « Perplexity Computer » : fond parchemin, texte sépia, grands titres
-serif très légers, cartes blanches sans ombre, boutons en pilule, flou végétal, **beaucoup d’air**.
+serif très légers, cartes blanches sans ombre, boutons en pilule, photos nettes, **beaucoup d’air**.
 
 ![Aperçu de l’image de partage](frontend/public/og/accueil.jpg)
 
@@ -34,16 +34,20 @@ npm run build && npm run og -w frontend                # reconstruire + images d
 Chaque photo est redressée, réduite à 2400 px, recompressée, **débarrassée de ses métadonnées GPS**,
 puis déclinée au build en **AVIF et WebP** à plusieurs tailles. Textes alternatifs, catégories,
 photo d’accueil et photos mises en avant se règlent dans `frontend/src/data/photos.json`
-(mode d’emploi : `frontend/src/assets/photos/README.md`). Tant qu’aucune photo n’est importée,
-des fonds végétaux flous en tiennent lieu et la galerie affiche un aperçu.
+(mode d’emploi : `frontend/src/assets/photos/README.md`).
+
+En attendant, le site montre **33 photos de fleurs d’illustration** sous licence libre (CC BY 2.0,
+auteurs crédités dans la galerie et dans les conditions d’utilisation). Elles sont retirées
+automatiquement dès que les vraies photos sont importées. L’accueil affiche une grande photo plein écran
+si l’une d’elles fait au moins 1600 px de large, sinon une mosaïque de photos : jamais d’image étirée ni floue.
 
 ## Ce qui est inclus
 
 | Demande | Réalisation |
 |---|---|
-| Page d’accueil avec toutes les photos | Galerie complète sur l’accueil (`/#galerie`) : filtres par thème, « afficher plus », visionneuse plein écran (clavier, glisser du doigt) |
+| Page d’accueil avec toutes les photos | Mosaïque de photos nettes en ouverture, puis galerie complète sur l’accueil (`/#galerie`) : filtres par thème, « afficher plus », visionneuse plein écran (clavier, glisser du doigt) |
 | Vraies offres | Fleurs & bouquets, plantes, pépinière, événements, entretien, sapins de Noël, 2 adresses, horaires, histoire depuis 2002 (sources en bas de page) |
-| Animations utiles, pas décoratives | Titre qui apparaît dans l’ordre de lecture · statut « Ouvert / Fermé » en direct · menu qui se replie en capsule au défilement · blocs qui apparaissent au rythme de la lecture · filtres de galerie qui glissent vers leur place · zoom de la vignette vers la visionneuse · frise de l’histoire qui se dessine · erreurs de formulaire qui apparaissent sous le champ · fleur qui s’ouvre quand le message est parti · compte à rebours visible sur la page 404 · transitions douces entre les pages. Tout est coupé si l’appareil demande « réduire les animations ». |
+| Animations utiles, pas décoratives | Titre qui apparaît dans l’ordre de lecture · photos de l’accueil qui arrivent une à une · statut « Ouvert / Fermé » en direct · menu qui se replie en capsule au défilement · blocs qui apparaissent au rythme de la lecture · filtres de galerie qui glissent vers leur place · zoom de la vignette vers la visionneuse · frise de l’histoire qui se dessine · erreurs de formulaire qui apparaissent sous le champ · fleur qui s’ouvre quand le message est parti · compte à rebours visible sur la page 404 · transitions douces entre les pages. Tout est coupé si l’appareil demande « réduire les animations ». |
 | Site aéré | Marges de 96 à 184 px entre sections, largeur de lecture limitée, peu d’éléments par ligne |
 | Page RGPD | `/confidentialite/` (responsable, données, bases légales, durées, droits, APD) |
 | Page CGU | `/cgu/` (+ mentions légales de l’éditeur) |
@@ -55,7 +59,7 @@ des fonds végétaux flous en tiennent lieu et la galerie affiche un aperçu.
 | Sitemap + robots.txt | `/sitemap-index.xml` et `/robots.txt` générés à chaque build |
 | Textes des images | Chaque image a un texte alternatif ; le contrôle automatique refuse une image sans |
 | Compression des images | Import (JPEG optimisé) puis AVIF/WebP responsive, chargement différé |
-| Vitesse | Lighthouse mobile : 99–100 en performance, ~140 Ko par page, polices allégées et hébergées sur le site, CSS intégré, pré-chargement des pages suivantes, fichiers pré-compressés (Brotli) |
+| Vitesse | Lighthouse mobile : 98–100 en performance, 120 à 370 Ko par page selon les photos, polices allégées et hébergées sur le site, CSS intégré, pré-chargement des pages suivantes, fichiers pré-compressés (Brotli) |
 | Contraste | Couleurs vérifiées WCAG 2.2 AA (`npm run check`) ; le gris de la référence a été assombri pour passer |
 | Page 404 personnalisée | « Cette page s’est fanée. » avec redirection automatique si l’ancienne adresse est connue, ou suggestion de la page la plus proche |
 | Responsive | Du téléphone (360 px) au grand écran ; menu plein écran sur mobile |
@@ -102,7 +106,7 @@ ALLOWED_ORIGINS=https://commeunefleur.be                    # dans api/.env
 
 ## À compléter avant la mise en ligne
 
-- [ ] Importer les photos (`npm run photos:import`) et relire leurs textes alternatifs
+- [ ] Importer les photos (`npm run photos:import`) et relire leurs textes alternatifs : elles remplacent les photos d’illustration
 - [ ] Mentions légales : dénomination, n° BCE, TVA, siège, hébergeur → `shared/business.js` (`legal`)
 - [ ] E-mails : SMTP dans `api/.env` (avec Gmail : « mot de passe d’application »)
 - [ ] `APP_SECRET` et `ADMIN_PASSWORD` dans `api/.env`

@@ -117,7 +117,8 @@ for (const file of files) {
   const description = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? '';
   if (description.length < 50 || description.length > 170) warnings.push(`${from} : description de ${description.length} caractères (idéal : 50 à 170)`);
   if (!isError && !/<link rel="canonical"/i.test(html)) errors.push(`${from} : balise canonique absente`);
-  for (const m of html.matchAll(/<img\b[^>]*>/gi)) if (!/\salt=/i.test(m[0])) errors.push(`${from} : image sans texte alternatif (${m[0].slice(0, 80)}…)`);
+  // « alt » vide (image décorative) peut s'écrire alt="" ou simplement alt.
+  for (const m of html.matchAll(/<img\b[^>]*>/gi)) if (!/\salt(?=[\s=>\/])/i.test(m[0])) errors.push(`${from} : image sans texte alternatif (${m[0].slice(0, 80)}…)`);
   const ids = [...html.matchAll(/\sid=["']([^"']+)["']/gi)].map((m) => m[1]);
   const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
   if (dup.length) errors.push(`${from} : identifiants en double : ${[...new Set(dup)].join(', ')}`);

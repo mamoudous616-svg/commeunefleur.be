@@ -16,20 +16,31 @@ async function dataUri(url, width) {
   return `data:image/jpeg;base64,${buf.toString('base64')}`;
 }
 
-/** Visuel : photo réelle de la catégorie si importée, sinon brume botanique floue. */
+const available = photosJson.filter((p) => !p.hidden && photoFiles.includes(p.file));
+
+/** Visuel : photo de la catégorie ; pour l'accueil, la photo plein écran ou, à défaut, 4 photos de la mosaïque.
+    Sans aucune photo importée : brume botanique (seul cas où un flou est utilisé). */
 async function visual(category) {
+  const photo = (entry, width = 900) => dataUri(new URL(`src/assets/photos/${entry.file}`, root), width);
+  if (category === 'hero') {
+    const hero = available.find((p) => p.hero && p.width >= 1600);
+    if (hero) return { srcs: [await photo(hero)], blur: 0 };
+    const mosaic = [...available.filter((p) => p.mosaic).sort((a, b) => a.mosaic - b.mosaic), ...available.filter((p) => p.featured), ...available];
+    const four = [...new Set(mosaic)].slice(0, 4);
+    if (four.length === 4) return { srcs: await Promise.all(four.map((p) => photo(p, 520))), blur: 0 };
+  }
   const entry =
-    photosJson.find((p) => p.category === category && p.featured && photoFiles.includes(p.file)) ??
-    photosJson.find((p) => p.category === category && photoFiles.includes(p.file)) ??
-    photosJson.find((p) => p.hero && photoFiles.includes(p.file));
-  if (entry) return { src: await dataUri(new URL(`src/assets/photos/${entry.file}`, root), 900), blur: 0 };
-  return { src: await dataUri(new URL(`src/assets/haze/${category}.webp`, root), 240), blur: 18 };
+    available.find((p) => p.category === category && p.featured) ??
+    available.find((p) => p.category === category) ??
+    available.find((p) => p.hero);
+  if (entry) return { srcs: [await photo(entry)], blur: 0 };
+  return { srcs: [await dataUri(new URL(`src/assets/haze/${category}.webp`, root), 240)], blur: 18 };
 }
 
 const pages = [
   { file: 'accueil', category: 'hero', eyebrow: 'fleuriste & pépinière · ixelles', title: 'Comme une <em>fleur</em>', text: '1000 m² de fleurs, plantes, arbres et arbustes en plein cœur de Bruxelles. Ouvert 7 j/7.' },
   { file: 'offres', category: 'fleurs', eyebrow: 'nos offres', title: 'Bouquets, plantes &amp; <em>pépinière</em>', text: 'Créations sur mesure, événements, entretien de jardins, sapins de Noël.' },
-  { file: 'contact', category: 'pepiniere', eyebrow: 'contact & horaires', title: 'Venez nous <em>voir</em>', text: 'Avenue de la Couronne 461 · Place Marie-José 2 · Ixelles' },
+  { file: 'contact', category: 'pepiniere', eyebrow: 'contact & horaires', title: 'Venez nous <em>voir</em>', text: 'Avenue de la Couronne&nbsp;461 ·<br>Place Marie-José&nbsp;2 · Ixelles' },
 ];
 
 // Polices intégrées en data: URI (une page générée ne peut pas lire de fichiers locaux).
@@ -56,6 +67,8 @@ p.lead { margin-top: 26px; font-size: 25px; line-height: 1.45; color: #6b6457; m
 .url { font-family: ui-monospace, 'DejaVu Sans Mono', monospace; font-size: 20px; color: #0f3639; }
 .visual { position: relative; border-radius: 12px; overflow: hidden; background: #7d8f6a; }
 .visual img { position: absolute; inset: ${image.blur ? '-12%' : '0'}; width: ${image.blur ? '124%' : '100%'}; height: ${image.blur ? '124%' : '100%'}; object-fit: cover; filter: blur(${image.blur}px); }
+.visual.grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; background: none; border-radius: 0; }
+.visual.grid .cell { position: relative; border-radius: 12px; overflow: hidden; background: #e5e5e3; }
 .pill { position: absolute; left: 20px; bottom: 20px; padding: 12px 18px; border-radius: 12px; background: rgba(255,255,255,.72); backdrop-filter: blur(20px); font-size: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #3f8f4f; }
 </style></head><body>
@@ -64,7 +77,11 @@ p.lead { margin-top: 26px; font-size: 25px; line-height: 1.45; color: #6b6457; m
   <div><p class="eyebrow">${page.eyebrow}</p><h1>${page.title}</h1><p class="lead">${page.text}</p></div>
   <p class="url">commeunefleur.be</p>
 </div>
-<div class="visual"><img src="${image.src}" alt=""><div class="pill"><span class="dot"></span>Ouvert 7 jours sur 7</div></div>
+${
+  image.srcs.length > 1
+    ? `<div class="visual grid">${image.srcs.map((src) => `<div class="cell"><img src="${src}" alt=""></div>`).join('')}<div class="pill"><span class="dot"></span>Ouvert 7 jours sur 7</div></div>`
+    : `<div class="visual"><img src="${image.srcs[0]}" alt=""><div class="pill"><span class="dot"></span>Ouvert 7 jours sur 7</div></div>`
+}
 </body></html>`;
 }
 

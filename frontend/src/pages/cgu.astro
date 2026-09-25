@@ -2,6 +2,7 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import Todo from '../components/Todo.astro';
 import { business } from '../data/site.js';
+import { illustrations, hasIllustrations } from '../lib/photos.js';
 
 const toc = [
   { id: 'editeur', label: 'Éditeur du site' },
@@ -9,7 +10,7 @@ const toc = [
   { id: 'acces', label: 'Accès au site' },
   { id: 'informations', label: 'Informations et photos' },
   { id: 'formulaire', label: 'Formulaire de contact' },
-  { id: 'propriete', label: 'Propriété intellectuelle' },
+  { id: 'propriete', label: hasIllustrations ? 'Propriété intellectuelle et crédits' : 'Propriété intellectuelle' },
   { id: 'liens', label: 'Liens externes' },
   { id: 'responsabilite', label: 'Responsabilité' },
   { id: 'donnees', label: 'Données personnelles' },
@@ -78,9 +79,12 @@ const toc = [
   <h2 id="informations">4. Informations et photos</h2>
   <p>
     Les informations publiées (offres, horaires, disponibilités saisonnières) sont données à titre indicatif et peuvent
-    évoluer, notamment selon les saisons et les arrivages. Les photos présentent des réalisations et l’ambiance de la
-    boutique et de la pépinière : elles ne sont pas contractuelles, chaque création étant composée à la main avec les
-    fleurs du moment.
+    évoluer, notamment selon les saisons et les arrivages.
+    {
+      hasIllustrations
+        ? 'Les photos du site sont, pour le moment, des photos d’illustration (voir « Crédits photos ») : elles ne montrent pas nos créations et ne sont pas contractuelles.'
+        : 'Les photos présentent des réalisations et l’ambiance de la boutique et de la pépinière : elles ne sont pas contractuelles, chaque création étant composée à la main avec les fleurs du moment.'
+    }
   </p>
   <p>
     Le site ne permet ni de commander ni de payer en ligne : toute commande est confirmée directement avec nous, par
@@ -95,12 +99,37 @@ const toc = [
     manifestement abusif.
   </p>
 
-  <h2 id="propriete">6. Propriété intellectuelle</h2>
+  <h2 id="propriete">6. Propriété intellectuelle{hasIllustrations && ' et crédits'}</h2>
   <p>
     Les textes, photos, logo et éléments graphiques du site appartiennent à {business.name} ou à leurs auteurs. Toute
     reproduction, même partielle, nécessite notre accord écrit préalable. Vous pouvez bien sûr partager librement un
     lien vers une page du site.
   </p>
+  {
+    hasIllustrations && (
+      <>
+        <h3 id="credits">Crédits photos</h3>
+        <p>
+          En attendant les photos de la boutique, le site est illustré par des photos de fleurs publiées par leurs
+          auteurs sous licence{' '}
+          <a href="https://creativecommons.org/licenses/by/2.0/deed.fr" rel="noopener" target="_blank">Creative Commons Attribution 2.0<span class="visually-hidden"> (nouvel onglet)</span></a>.
+          Elles ont été recadrées, redimensionnées et compressées pour le site ; elles restent la propriété de leurs
+          auteurs, que nous remercions :
+        </p>
+        <ul class="credits">
+          {illustrations.map((p) => (
+            <li>
+              <a href={p.credit.url} rel="noopener" target="_blank">
+                {p.alt}
+                <span class="visually-hidden"> (nouvel onglet)</span>
+              </a>{' '}
+              — {p.credit.author}
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
 
   <h2 id="liens">7. Liens externes</h2>
   <p>
@@ -136,3 +165,9 @@ const toc = [
     dernière mise à jour figure en haut de la page.
   </p>
 </LegalLayout>
+
+<style>
+  .credits {
+    font-size: var(--text-small);
+  }
+</style>

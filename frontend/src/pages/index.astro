@@ -8,13 +8,22 @@ import Gallery from '../components/Gallery.astro';
 import LocationCard from '../components/LocationCard.astro';
 import HoursTable from '../components/HoursTable.astro';
 import { business, offers, facts, history } from '../data/site.js';
-import { heroPhoto, hasPhotos, photos, hazeFor } from '../lib/photos.js';
+import { heroPhoto, heroMosaic, hasPhotos, hasIllustrations, photos, hazeFor } from '../lib/photos.js';
 import { organization, locations, website } from '../lib/schema.js';
 
-// Fond du héros : la vraie photo d'accueil, nette (aucun flou), en AVIF/WebP à la taille de l'écran.
-// Tant que les photos ne sont pas importées, une brume végétale en tient lieu.
+// Héros, trois cas :
+// - une grande photo de la boutique (≥ 1600 px) : plein écran, nette ;
+// - sinon, une mosaïque de photos affichées près de leur taille réelle (nettes elles aussi) ;
+// - tant qu'aucune photo n'est importée, une brume végétale en tient lieu.
+const heroMode = heroPhoto ? 'photo' : heroMosaic.length ? 'mosaic' : 'haze';
 const heroHaze = hazeFor('hero');
 const heroWidths = heroPhoto ? [640, 960, 1280, 1600, 1920, 2400].filter((w) => w <= heroPhoto.asset.width) : [];
+const tileWidths = (p) => {
+  const list = [240, 360, 480, 640, 800, 1000].filter((w) => w <= p.asset.width);
+  return list.length ? list : undefined;
+};
+// Cases visibles selon l'écran : 6 sur téléphone, 8 sur tablette, 10 sur ordinateur.
+const tileClass = (i) => (i >= 8 ? 'hero__tile--desktop' : i >= 6 ? 'hero__tile--tablet' : '');
 const [pepiniere, boutique] = business.locations;
 ---
 
@@ -24,32 +33,36 @@ const [pepiniere, boutique] = business.locations;
   jsonLd={[website, organization, ...locations]}
   bodyClass="has-hero"
 >
-  <!-- Héros : photo de la boutique en fond, titre léger, infos pratiques en carte flottante -->
-  <section class:list={['hero', heroPhoto ? 'hero--photo' : 'hero--haze']} aria-labelledby="hero-title">
-    <div class="hero__bg" aria-hidden="true">
-      {
-        heroPhoto ? (
-          <Picture
-            src={heroPhoto.asset}
-            alt=""
-            formats={['avif', 'webp']}
-            widths={heroWidths.length ? heroWidths : undefined}
-            sizes="100vw"
-            quality={78}
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-            class:list={['hero__photo', `focus-${heroPhoto.focus ?? 'center'}`]}
-          />
-        ) : (
-          <img class="hero__haze" src={heroHaze.src} alt="" width={heroHaze.width} height={heroHaze.height} fetchpriority="high" decoding="async" />
-        )
-      }
-    </div>
-    <div class="hero__veil" aria-hidden="true"></div>
+  <!-- Héros : photos nettes (plein écran ou mosaïque), titre léger, infos pratiques en carte -->
+  <section class:list={['hero', `hero--${heroMode}`]} aria-labelledby="hero-title">
+    {
+      heroMode !== 'mosaic' && (
+        <div class="hero__bg" aria-hidden="true">
+          {heroPhoto ? (
+            <Picture
+              src={heroPhoto.asset}
+              alt=""
+              formats={['avif', 'webp']}
+              widths={heroWidths.length ? heroWidths : undefined}
+              sizes="100vw"
+              quality={78}
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              class:list={['hero__photo', `focus-${heroPhoto.focus ?? 'center'}`]}
+            />
+          ) : (
+            <img class="hero__haze" src={heroHaze.src} alt="" width={heroHaze.width} height={heroHaze.height} fetchpriority="high" decoding="async" />
+          )}
+        </div>
+      )
+    }
+    {heroMode !== 'mosaic' && <div class="hero__veil" aria-hidden="true" />}
 
     <div class="hero__inner wrap">
-      <p class="eyebrow hero__eyebrow hero-in" style="--d:0">fleuriste &amp; pépinière · ixelles · depuis 2002</p>
+      <p class="eyebrow hero__eyebrow hero-in" style="--d:0">
+        <span>fleuriste &amp; pépinière ·</span> <span>ixelles · depuis 2002</span>
+      </p>
       <h1 class="hero__title" id="hero-title">
         <span class="display hero-in" style="--d:1">Comme une <em>fleur</em></span>
         <span class="hero__subtitle hero-in" style="--d:2">Fleuriste &amp; pépinière à Ixelles, Bruxelles</span>
@@ -84,6 +97,25 @@ const [pepiniere, boutique] = business.locations;
         {pepiniere.phoneDisplay}
       </a>
     </aside>
+
+    {
+      heroMosaic.map((p, i) => (
+        <div class:list={['hero__tile', tileClass(i)]} style={`--t:${i}`} aria-hidden="true">
+          <Picture
+            src={p.asset}
+            alt=""
+            formats={['avif', 'webp']}
+            widths={tileWidths(p)}
+            sizes="(min-width: 1000px) 17vw, (min-width: 641px) 25vw, 34vw"
+            quality={80}
+            loading={i < 3 ? 'eager' : 'lazy'}
+            fetchpriority="low"
+            decoding="async"
+            class:list={['hero__tile-img', `focus-${p.focus ?? 'center'}`]}
+          />
+        </div>
+      ))
+    }
   </section>
 
   <!-- Déclaration + faits clés -->
@@ -135,9 +167,11 @@ const [pepiniere, boutique] = business.locations;
         </div>
         <p class="lead reveal">
           {
-            hasPhotos
-              ? `${photos.length} photos de nos fleurs, de nos plantes et de la pépinière. Touchez une photo pour l’agrandir.`
-              : 'Nos fleurs, nos plantes et la pépinière, en photos.'
+            !hasPhotos
+              ? 'Nos fleurs, nos plantes et la pépinière, en photos.'
+              : hasIllustrations
+                ? `Fleurs, plantes et jardins en ${photos.length} photos. Touchez une photo pour l’agrandir.`
+                : `${photos.length} photos de nos fleurs, de nos plantes et de la pépinière. Touchez une photo pour l’agrandir.`
           }
         </p>
       </div>
@@ -275,6 +309,132 @@ const [pepiniere, boutique] = business.locations;
     }
   }
 
+  /* Mosaïque : des photos nettes, sans voile ni flou, encadrent un titre posé sur le parchemin.
+     Chaque case affiche la photo près de sa taille réelle, pour rester nette même sur écran Retina. */
+  .hero--mosaic {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: minmax(120px, 1fr) auto minmax(120px, 1fr);
+    align-content: stretch;
+    gap: 16px;
+    padding: calc(var(--header-h) + 4px) 16px 16px;
+  }
+
+  /* Le titre s'adapte aussi à la hauteur de l'écran : photos du haut et du bas visibles d'un coup d'œil. */
+  .hero--mosaic .hero__inner {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    gap: clamp(16px, 2.6vh, 30px);
+    padding-block: clamp(12px, 3vh, 48px);
+  }
+
+  .hero--mosaic .hero__title .display {
+    font-size: min(clamp(3.5rem, 1.4rem + 8.4vw, 7.5rem), 14vh);
+  }
+
+  @media (min-width: 1000px) {
+    .hero--mosaic .hero__lead {
+      max-width: 56ch;
+    }
+  }
+
+  .hero__tile {
+    position: relative;
+    min-height: 0;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--ash);
+    animation: tile-in 1000ms var(--ease-out) both;
+    animation-delay: calc(100ms + var(--t, 0) * 60ms);
+  }
+
+  .hero__tile :global(picture),
+  .hero__tile :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+
+  /* La carte d'infos pratiques devient une case blanche de la mosaïque.
+     Statut et téléphone sur une ligne (le téléphone passe dessous si la place manque), adresses en dessous. */
+  .hero--mosaic .hero__card {
+    position: static;
+    grid-row: 3;
+    grid-column: 3 / 5;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+    gap: 14px 16px;
+    width: auto;
+    max-width: none;
+    translate: none;
+    padding: 20px 24px;
+    border: 0;
+    background: var(--white);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .hero--mosaic .hero__phone {
+    order: 1;
+  }
+
+  .hero--mosaic .hero__places {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 999px) {
+    .hero--mosaic {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: minmax(130px, 1fr) auto auto minmax(130px, 1fr);
+    }
+
+    .hero--mosaic .hero__card {
+      grid-column: 1 / -1;
+      justify-self: center;
+      width: min(100%, 560px);
+    }
+
+    .hero__tile--desktop {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero--mosaic {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: minmax(100px, 1fr) auto auto minmax(100px, 1fr);
+      gap: 10px;
+      padding: calc(var(--header-h) - 4px) 12px 12px;
+    }
+
+    .hero__tile {
+      border-radius: 8px;
+    }
+
+    .hero__tile--tablet {
+      display: none;
+    }
+
+    .hero--mosaic .hero__card {
+      width: 100%;
+      padding: 18px 20px;
+    }
+  }
+
   .hero__inner {
     display: grid;
     justify-items: center;
@@ -283,6 +443,11 @@ const [pepiniere, boutique] = business.locations;
 
   .hero__eyebrow {
     color: var(--sepia);
+  }
+
+  /* Sur petit écran, la ligne se coupe entre deux groupes, jamais au milieu. */
+  .hero__eyebrow span {
+    white-space: nowrap;
   }
 
   .hero__eyebrow::before {
@@ -420,6 +585,27 @@ const [pepiniere, boutique] = business.locations;
     .hero__places {
       flex-direction: column;
       gap: 10px;
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 860px) {
+    .hero--mosaic .hero__card {
+      text-align: left;
+    }
+
+    .hero--mosaic .hero__card :global(.status) {
+      width: auto;
+    }
+  }
+
+  /* Téléphone : tout est centré et l'appel passe en dernier, sous les adresses. */
+  @media (max-width: 480px) {
+    .hero--mosaic .hero__card {
+      justify-content: center;
+    }
+
+    .hero--mosaic .hero__phone {
+      order: 3;
     }
   }
 

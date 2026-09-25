@@ -18,12 +18,12 @@ async function dataUri(url, width) {
 
 const available = photosJson.filter((p) => !p.hidden && photoFiles.includes(p.file));
 
-/** Visuel : photo de la catégorie ; pour l'accueil, la photo plein écran ou, à défaut, 4 photos de la mosaïque.
+/** Visuel : photo de la catégorie ; pour l'accueil, la photo de fond (« hero ») ou, à défaut, 4 photos de la mosaïque.
     Sans aucune photo importée : brume botanique (seul cas où un flou est utilisé). */
 async function visual(category) {
   const photo = (entry, width = 900) => dataUri(new URL(`src/assets/photos/${entry.file}`, root), width);
   if (category === 'hero') {
-    const hero = available.find((p) => p.hero && p.width >= 1600);
+    const hero = available.find((p) => p.hero) ?? available.find((p) => p.width >= 1600 && p.width >= p.height * 1.2);
     if (hero) return { srcs: [await photo(hero)], blur: 0 };
     const mosaic = [...available.filter((p) => p.mosaic).sort((a, b) => a.mosaic - b.mosaic), ...available.filter((p) => p.featured), ...available];
     const four = [...new Set(mosaic)].slice(0, 4);

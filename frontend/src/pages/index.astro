@@ -586,6 +586,25 @@ const [pepiniere, boutique] = business.locations;
     }
   }
 
+  /* Téléphone, fond photo : la carte suit le texte au lieu de flotter en bas de l'écran,
+     sinon elle recouvrirait le bouton « Voir les photos ». */
+  @media (max-width: 640px) {
+    .hero--photo,
+    .hero--haze {
+      padding-bottom: 24px;
+    }
+
+    .hero--photo .hero__card,
+    .hero--haze .hero__card {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      translate: none;
+      width: calc(100% - 2 * var(--gutter));
+      margin: clamp(28px, 5vh, 48px) auto 0;
+    }
+  }
+
   @media (min-width: 481px) and (max-width: 860px) {
     .hero--mosaic .hero__card {
       text-align: left;

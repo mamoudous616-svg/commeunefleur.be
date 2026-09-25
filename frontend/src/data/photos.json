@@ -1,5 +1,22 @@
 [
   {
+    "file": "illustration-00-dahlia-peche-en-gros-plan.jpg",
+    "alt": "Dahlia pêche en gros plan, sur un fond de feuillage",
+    "altReviewed": true,
+    "category": "fleurs",
+    "width": 1920,
+    "height": 1281,
+    "source": "https://www.flickr.com/photos/vultilion/6056698931/",
+    "illustration": true,
+    "credit": {
+      "author": "vultilion",
+      "url": "https://www.flickr.com/photos/vultilion/6056698931/",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/deed.fr"
+    },
+    "hero": true
+  },
+  {
     "file": "illustration-01-bouquet-de-roses-fuchsia.jpg",
     "alt": "Bouquet de roses fuchsia",
     "altReviewed": true,

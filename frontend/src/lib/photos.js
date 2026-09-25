@@ -26,13 +26,12 @@ export function coverFor(category) {
   return list.find((p) => p.featured) ?? list[0] ?? photos.find((p) => p.cover?.includes(category)) ?? null;
 }
 
-// Accueil : une photo plein écran seulement si elle est assez grande pour rester nette sur grand écran.
-// Sinon, une mosaïque de photos affichées près de leur taille réelle (donc nettes).
+// Accueil : la photo choisie à la main (« hero ») en plein écran ; à défaut, une photo assez grande
+// pour rester nette sur grand écran ; sinon, une mosaïque de photos affichées près de leur taille réelle.
 const HERO_MIN_WIDTH = 1600;
 const isWide = (p) => p.asset.width >= HERO_MIN_WIDTH && p.asset.width >= p.asset.height * 1.2;
 
-export const heroPhoto =
-  photos.find((p) => p.hero && p.asset.width >= HERO_MIN_WIDTH) ?? photos.find((p) => isWide(p)) ?? null;
+export const heroPhoto = photos.find((p) => p.hero) ?? photos.find((p) => isWide(p)) ?? null;
 
 export const MOSAIC_SIZE = 10;
 

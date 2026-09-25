@@ -332,8 +332,10 @@ async function main() {
       list.sort((a, b) => b.width * b.height - a.width * a.height)[0].featured = true;
     }
   }
+  // Photo de fond de l'accueil : seulement une photo assez grande pour rester nette en plein écran
+  // (sinon l'accueil montre une mosaïque). On peut toujours en choisir une à la main (« hero »).
   if (!manifest.some((p) => p.hero)) {
-    const landscape = manifest.filter((p) => !p.hidden && p.width >= p.height * 1.2).sort((a, b) => b.width - a.width)[0];
+    const landscape = manifest.filter((p) => !p.hidden && p.width >= 1600 && p.width >= p.height * 1.2).sort((a, b) => b.width - a.width)[0];
     if (landscape) landscape.hero = true;
   }
 

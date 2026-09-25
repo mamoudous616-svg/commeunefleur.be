@@ -1,0 +1,14 @@
+---
+// Statut « Ouvert · jusqu'à 20 h » calculé en direct dans le navigateur (heure de Bruxelles).
+// Sans JavaScript : le résumé des horaires reste affiché.
+import { business } from '../data/site.js';
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<p class:list={['status', className]} data-open-status>
+  <span class="status__dot" aria-hidden="true"></span>
+  <span data-open-label>{business.hoursSummary}</span>
+</p>

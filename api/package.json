@@ -1,0 +1,20 @@
+{
+  "name": "@cuf/api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API de Comme Une Fleur : formulaire de contact (validation + anti-spam), mesure d'audience anonyme, consentement, liens cassés, tableau de bord. Sert aussi le site statique en production.",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@cuf/shared": "1.0.0",
+    "nodemailer": "^10.0.10"
+  }
+}

@@ -1,0 +1,228 @@
+---
+// Bandeau de consentement (RGPD / directive ePrivacy) : « Refuser » aussi simple qu'« Accepter »,
+// rien n'est mesuré avant un choix, le choix est modifiable à tout moment (pied de page).
+---
+
+<section class="consent" data-consent hidden aria-labelledby="consent-title">
+  <div class="consent__body">
+    <h2 id="consent-title" class="consent__title">Cookies &amp; mesure d’audience</h2>
+    <p class="consent__text">
+      Avec votre accord, nous mesurons la fréquentation du site de façon anonyme : sans publicité, sans traceur tiers.
+      Vous pouvez changer d’avis à tout moment.
+      <a href="/confidentialite/#cookies">En savoir plus</a>
+    </p>
+
+    <div class="consent__prefs" id="consent-prefs" data-consent-prefs hidden>
+      <div class="consent__row">
+        <div>
+          <p class="consent__label">Strictement nécessaires</p>
+          <p class="consent__hint">Mémoriser vos choix de confidentialité. Toujours actifs.</p>
+        </div>
+        <span class="consent__always">Toujours actifs</span>
+      </div>
+      <div class="consent__row">
+        <div>
+          <label class="consent__label" for="consent-analytics">Mesure d’audience</label>
+          <p class="consent__hint" id="consent-analytics-hint">
+            Pages vues et provenance des visites, anonymisées et hébergées par nos soins. Aucun cookie.
+          </p>
+        </div>
+        <input
+          class="switch"
+          type="checkbox"
+          role="switch"
+          id="consent-analytics"
+          aria-describedby="consent-analytics-hint"
+          data-consent-analytics
+        />
+      </div>
+    </div>
+
+    <div class="consent__actions">
+      <button type="button" class="btn btn--primary" data-consent-reject>Tout refuser</button>
+      <button type="button" class="btn btn--primary" data-consent-accept>Tout accepter</button>
+      <button
+        type="button"
+        class="consent__more"
+        aria-expanded="false"
+        aria-controls="consent-prefs"
+        data-consent-customize
+      >
+        Personnaliser
+      </button>
+      <button type="button" class="btn btn--dark" data-consent-save hidden>Enregistrer mes choix</button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .consent {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 60;
+    max-width: 400px;
+    padding: 22px 22px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--white);
+    color: var(--sepia);
+    transform: translateY(0);
+    opacity: 1;
+    transition:
+      transform 480ms var(--ease-out),
+      opacity 480ms var(--ease-out);
+  }
+
+  @starting-style {
+    .consent {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+  }
+
+  .consent.is-leaving {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  @media (max-width: 560px) {
+    .consent {
+      padding: 18px 18px 12px;
+    }
+
+    .consent__title {
+      font-size: 1.125rem;
+    }
+
+    .consent__text {
+      font-size: 0.8125rem;
+    }
+  }
+
+  .consent__body {
+    display: grid;
+    gap: 12px;
+  }
+
+  .consent__title {
+    font-family: var(--font-serif);
+    font-size: 1.3125rem;
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--slate);
+  }
+
+  .consent__text {
+    font-size: var(--text-small);
+    line-height: 1.55;
+    color: var(--moss);
+  }
+
+  .consent__text a {
+    color: var(--teal);
+  }
+
+  .consent__prefs {
+    display: grid;
+    gap: 4px;
+    padding: 4px 0;
+  }
+
+  .consent__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .consent__label {
+    font-weight: 500;
+    font-size: 0.9375rem;
+  }
+
+  .consent__hint {
+    font-size: var(--text-small);
+    color: var(--moss);
+  }
+
+  .consent__always {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--moss);
+  }
+
+  .consent__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .consent__actions .btn {
+    flex: 1 1 120px;
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: var(--text-small);
+  }
+
+  .consent__more {
+    flex-basis: 100%;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--teal);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-align: left;
+  }
+
+  /* Interrupteur accessible (case à cocher avec role="switch") */
+  .switch {
+    appearance: none;
+    flex: none;
+    position: relative;
+    width: 46px;
+    height: 28px;
+    margin: 0;
+    border: 1px solid var(--field);
+    border-radius: 28px;
+    background: var(--parchment);
+    cursor: pointer;
+    transition:
+      background-color var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out);
+  }
+
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--moss);
+    transition:
+      transform var(--dur) var(--ease-out),
+      background-color var(--dur) var(--ease-out);
+  }
+
+  .switch:checked {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+
+  .switch:checked::after {
+    transform: translateX(18px);
+    background: var(--white);
+  }
+</style>

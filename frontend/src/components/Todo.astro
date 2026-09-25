@@ -1,0 +1,10 @@
+---
+// Affiche la valeur, ou un repère « à compléter » tant que la boutique ne l'a pas fournie.
+interface Props {
+  value?: string | null;
+  label?: string;
+}
+const { value, label = 'à compléter' } = Astro.props;
+---
+
+{value ? <span>{value}</span> : <span class="todo">{label}</span>}

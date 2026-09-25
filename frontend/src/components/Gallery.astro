@@ -1,0 +1,423 @@
+---
+// Galerie de toutes les photos : filtres par catégorie, affichage progressif, visionneuse.
+import { getImage } from 'astro:assets';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+import { photos, hazeFor } from '../lib/photos.js';
+import { categories } from '../data/site.js';
+
+const INITIAL = 12;
+
+// Grandes versions pour la visionneuse (AVIF + WebP, jusqu'à 1920 px).
+const items = await Promise.all(
+  photos.map(async (p) => {
+    const widths = [800, 1280, 1920].filter((w) => w <= p.asset.width);
+    if (!widths.length || widths[widths.length - 1] < p.asset.width) widths.push(Math.min(p.asset.width, 1920));
+    const [avif, webp] = await Promise.all(
+      ['avif', 'webp'].map((format) => getImage({ src: p.asset, widths, format: format as 'avif' | 'webp', quality: 78 })),
+    );
+    return { ...p, avif: avif.srcSet.attribute, webp: webp.srcSet.attribute, src: webp.src };
+  }),
+);
+
+const used = categories
+  .map((c) => ({ ...c, count: items.filter((p) => p.category === c.id).length }))
+  .filter((c) => c.count > 0);
+const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
+---
+
+<div class="gallery" data-gallery data-initial={INITIAL}>
+  {
+    items.length > 0 ? (
+      <>
+        <div class="gallery__filters" role="group" aria-label="Filtrer les photos par thème">
+          <button type="button" class="chip" aria-pressed="true" data-filter="all">
+            Tout <span class="count">{items.length}</span>
+          </button>
+          {used.map((c) => (
+            <button type="button" class="chip" aria-pressed="false" data-filter={c.id}>
+              {c.label} <span class="count">{c.count}</span>
+            </button>
+          ))}
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-gallery-status />
+
+        <ul class="gallery__grid" role="list" data-gallery-grid>
+          {items.map((p, i) => (
+            <li
+              class="gallery__item"
+              data-category={p.category}
+              data-index={i}
+              data-avif={p.avif}
+              data-webp={p.webp}
+              data-src={p.src}
+              data-w={p.asset.width}
+              data-h={p.asset.height}
+              hidden={i >= INITIAL}
+            >
+              <button type="button" class="gallery__open" data-open={i}>
+                <Photo
+                  as="span"
+                  photo={p}
+                  sizes="(min-width: 1200px) 280px, (min-width: 900px) 30vw, (min-width: 560px) 45vw, 92vw"
+                  widths={[280, 400, 560, 720, 900]}
+                  class="gallery__photo"
+                />
+                <span class="gallery__zoom" aria-hidden="true">
+                  <Icon name="expand" size={16} />
+                </span>
+                <span class="visually-hidden">Agrandir la photo : {p.alt}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {items.length > INITIAL && (
+          <div class="gallery__more">
+            <button type="button" class="btn btn--ghost" data-gallery-more>
+              <Icon name="plus" size={16} />
+              <span data-more-label>Afficher les {items.length - INITIAL} autres photos</span>
+            </button>
+          </div>
+        )}
+
+        <dialog class="lightbox" data-lightbox aria-label="Visionneuse de photos">
+          <div class="lightbox__stage" data-lightbox-stage>
+            <figure class="lightbox__figure">
+              <picture>
+                <source type="image/avif" data-lightbox-avif />
+                <source type="image/webp" data-lightbox-webp />
+                <img
+                  data-lightbox-img
+                  src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                  alt=""
+                  sizes="(min-width: 1200px) 80vw, 100vw"
+                  decoding="async"
+                />
+              </picture>
+              <figcaption class="lightbox__caption">
+                <span data-lightbox-caption />
+                <span class="mono lightbox__count" data-lightbox-count />
+              </figcaption>
+            </figure>
+          </div>
+          <button type="button" class="lightbox__btn lightbox__close" data-lightbox-close aria-label="Fermer la visionneuse">
+            <Icon name="close" size={22} />
+          </button>
+          <button type="button" class="lightbox__btn lightbox__prev" data-lightbox-prev aria-label="Photo précédente">
+            <Icon name="chevron-left" size={22} />
+          </button>
+          <button type="button" class="lightbox__btn lightbox__next" data-lightbox-next aria-label="Photo suivante">
+            <Icon name="chevron-right" size={22} />
+          </button>
+        </dialog>
+      </>
+    ) : (
+      <>
+        <p class="gallery__notice mono">
+          Aperçu — les photos de commeunefleur.be s’afficheront ici après import (npm run photos:import).
+        </p>
+        <ul class="gallery__grid gallery__grid--mood" role="list" data-reveal-group>
+          {moodTiles.map((c) => (
+            <li class="gallery__item reveal">
+              <div class="gallery__mood">
+                <img src={c.haze.src} alt="" width={c.haze.width} height={c.haze.height} loading="lazy" decoding="async" />
+                <span class="gallery__mood-label">{c.label}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+</div>
+
+<script>
+  import { initGallery } from '../scripts/gallery.js';
+  initGallery();
+</script>
+
+<style>
+  .gallery__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: clamp(32px, 4vw, 48px);
+  }
+
+  .gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+    gap: clamp(14px, 1.8vw, 24px);
+    margin: 0;
+  }
+
+  .gallery__item {
+    position: relative;
+  }
+
+  .gallery__item.is-entering {
+    animation: tile-in 620ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+  }
+
+  .gallery__open {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    background: none;
+    overflow: hidden;
+    cursor: zoom-in;
+  }
+
+  .gallery__open :global(.gallery__photo) {
+    aspect-ratio: 4 / 5;
+  }
+
+  .gallery__open :global(.photo__img) {
+    transition:
+      transform 900ms var(--ease-out),
+      filter 600ms var(--ease-out);
+  }
+
+  .gallery__open:hover :global(.photo__img) {
+    transform: scale(1.035);
+  }
+
+  .gallery__zoom {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: var(--sepia);
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+  }
+
+  .gallery__open:hover .gallery__zoom,
+  .gallery__open:focus-visible .gallery__zoom {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (hover: none) {
+    .gallery__zoom {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .gallery__more {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(40px, 5vw, 64px);
+  }
+
+  .gallery__notice {
+    margin-bottom: 24px;
+    color: var(--moss);
+  }
+
+  .gallery__mood {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: #7d8f6a;
+  }
+
+  .gallery__mood img {
+    position: absolute;
+    inset: -10%;
+    width: 120%;
+    height: 120%;
+    max-width: none;
+    object-fit: cover;
+    filter: blur(12px);
+  }
+
+  .gallery__mood-label {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    color: var(--slate);
+  }
+
+  /* Visionneuse */
+  .lightbox {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(18, 21, 22, 0.97);
+    color: var(--parchment);
+    overscroll-behavior: contain;
+  }
+
+  .lightbox[open] {
+    display: grid;
+    animation: fade-in 260ms var(--ease-out);
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .lightbox__stage {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: clamp(56px, 7vh, 88px) clamp(12px, 7vw, 96px);
+    touch-action: pan-y;
+  }
+
+  .lightbox__figure {
+    display: grid;
+    gap: 16px;
+    justify-items: center;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .lightbox__figure img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100vh - 2 * clamp(56px, 7vh, 88px) - 56px);
+    max-height: calc(100dvh - 2 * clamp(56px, 7vh, 88px) - 56px);
+    border-radius: 8px;
+    object-fit: contain;
+    transition:
+      opacity 220ms var(--ease-out),
+      transform 320ms var(--ease-out);
+  }
+
+  .lightbox__figure img.is-swapping-next {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+
+  .lightbox__figure img.is-swapping-prev {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+
+  .lightbox__caption {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    max-width: 70ch;
+    font-size: 0.9375rem;
+    color: var(--ash);
+    text-align: center;
+  }
+
+  .lightbox__count {
+    color: var(--ash-2);
+    white-space: nowrap;
+  }
+
+  .lightbox__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(250, 248, 245, 0.25);
+    border-radius: 50%;
+    background: rgba(250, 248, 245, 0.08);
+    color: var(--parchment);
+    transition: background-color var(--dur) var(--ease-out);
+  }
+
+  .lightbox__btn:hover {
+    background: rgba(250, 248, 245, 0.2);
+  }
+
+  .lightbox__btn:focus-visible {
+    outline-color: var(--parchment);
+  }
+
+  .lightbox__close {
+    top: 16px;
+    right: 16px;
+  }
+
+  .lightbox__prev,
+  .lightbox__next {
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .lightbox__prev {
+    left: 16px;
+  }
+
+  .lightbox__next {
+    right: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .lightbox__prev,
+    .lightbox__next {
+      top: auto;
+      bottom: 16px;
+      translate: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .gallery__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .gallery__open,
+    .gallery__mood {
+      border-radius: 8px;
+    }
+
+    .gallery__mood-label {
+      left: 8px;
+      bottom: 8px;
+      font-size: 1rem;
+    }
+  }
+</style>

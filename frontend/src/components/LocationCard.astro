@@ -1,0 +1,64 @@
+---
+import Icon from './Icon.astro';
+import { fullAddress } from '@cuf/shared/business';
+interface Props {
+  location: any;
+  headingLevel?: 'h2' | 'h3';
+  class?: string;
+}
+const { location: loc, headingLevel = 'h3', class: className } = Astro.props;
+const Heading = headingLevel;
+---
+
+<article class:list={['location card', className]} id={loc.id} aria-labelledby={`${loc.id}-titre`}>
+  <p class="eyebrow">{loc.kind}</p>
+  <Heading class="h3" id={`${loc.id}-titre`}>{loc.name}</Heading>
+  <p class="muted">{loc.detail}</p>
+  <address class="location__address">
+    <Icon name="pin" size={18} />
+    <span>{loc.street}<br />{loc.postalCode} {loc.city}</span>
+  </address>
+  <div class="location__actions">
+    <a class="btn btn--dark" href={`tel:${loc.phone}`} data-track="call">
+      <Icon name="phone" size={17} />
+      {loc.phoneDisplay}
+    </a>
+    <a class="btn btn--ghost" href={loc.mapsUrl} target="_blank" rel="noopener" data-track="directions">
+      Itinéraire
+      <Icon name="arrow-out" class="arrow arrow--out" size={16} />
+      <span class="visually-hidden">vers {fullAddress(loc)} (nouvel onglet)</span>
+    </a>
+  </div>
+</article>
+
+<style>
+  .location {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    scroll-margin-top: calc(var(--header-h) + 32px);
+  }
+
+  .location__address {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 8px;
+    font-style: normal;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+
+  .location__address :global(.icon) {
+    margin-top: 3px;
+    color: var(--moss);
+    flex: none;
+  }
+
+  .location__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+</style>

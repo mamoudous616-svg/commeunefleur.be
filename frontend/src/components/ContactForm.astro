@@ -1,0 +1,413 @@
+---
+// Formulaire de contact : validation en direct (mêmes règles que l'API), anti-spam invisible
+// (champ piège + jeton horodaté + limite d'envois côté serveur), fonctionne aussi sans JavaScript.
+import Icon from './Icon.astro';
+import { SUBJECTS, LIMITS } from '@cuf/shared/validation';
+
+const api = (import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+---
+
+<form class="form card" id="formulaire" method="post" action={`${api}/api/contact`} novalidate data-contact-form>
+  <div class="form__head">
+    <h2 class="h3">Écrire un message</h2>
+    <p class="muted">Les champs marqués d’un <span aria-hidden="true">*</span><span class="visually-hidden">astérisque</span> sont obligatoires.</p>
+  </div>
+
+  <div class="form__summary" role="alert" tabindex="-1" hidden data-form-summary>
+    <p><strong>Il manque quelques informations :</strong></p>
+    <ul data-form-summary-list></ul>
+  </div>
+
+  <div class="form__fields" data-form-fields>
+    <div class="field">
+      <label for="nom">Nom et prénom <span class="req" aria-hidden="true">*</span></label>
+      <input id="nom" name="nom" type="text" autocomplete="name" required minlength={LIMITS.nom.min} maxlength={LIMITS.nom.max} aria-describedby="nom-erreur" />
+      <p class="field__error" id="nom-erreur" data-error-for="nom"></p>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="email">E-mail <span class="req" aria-hidden="true">*</span></label>
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength={LIMITS.email.max} spellcheck="false" aria-describedby="email-erreur email-suggestion" />
+        <p class="field__hint" id="email-suggestion" hidden data-email-suggestion>
+          Vouliez-vous dire <button type="button" class="linklike" data-email-fix></button> ?
+        </p>
+        <p class="field__error" id="email-erreur" data-error-for="email"></p>
+      </div>
+      <div class="field">
+        <label for="telephone">Téléphone <span class="field__optional">facultatif</span></label>
+        <input id="telephone" name="telephone" type="tel" inputmode="tel" autocomplete="tel" maxlength={LIMITS.telephone.max} aria-describedby="telephone-erreur" />
+        <p class="field__error" id="telephone-erreur" data-error-for="telephone"></p>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="sujet">Votre demande <span class="req" aria-hidden="true">*</span></label>
+        <div class="select">
+          <select id="sujet" name="sujet" required aria-describedby="sujet-erreur">
+            <option value="">Choisir un sujet…</option>
+            {SUBJECTS.map((s) => <option value={s.value}>{s.label}</option>)}
+          </select>
+          <Icon name="chevron-right" size={16} class="select__icon" />
+        </div>
+        <p class="field__error" id="sujet-erreur" data-error-for="sujet"></p>
+      </div>
+      <div class="field">
+        <label for="date">Date souhaitée <span class="field__optional">facultatif</span></label>
+        <input id="date" name="date" type="date" aria-describedby="date-aide date-erreur" data-min-today />
+        <p class="field__hint" id="date-aide">Pour un événement ou une commande.</p>
+        <p class="field__error" id="date-erreur" data-error-for="date"></p>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field__label-row">
+        <label for="message">Message <span class="req" aria-hidden="true">*</span></label>
+        <span class="field__counter mono" data-counter aria-hidden="true">0 / {LIMITS.message.max}</span>
+      </div>
+      <textarea id="message" name="message" rows="6" required minlength={LIMITS.message.min} maxlength={LIMITS.message.max} aria-describedby="message-aide message-erreur"></textarea>
+      <p class="field__hint" id="message-aide">L’occasion, vos envies, vos couleurs, votre budget…</p>
+      <p class="field__error" id="message-erreur" data-error-for="message"></p>
+    </div>
+
+    <!-- Anti-spam : champ piège invisible pour les humains, rempli par les robots -->
+    <div class="form__trap" aria-hidden="true">
+      <label for="site-web">Laissez ce champ vide</label>
+      <input id="site-web" name="website" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+    <input type="hidden" name="token" value="" data-form-token />
+
+    <p class="form__privacy">
+      Vos données servent uniquement à répondre à votre demande et ne sont jamais revendues.
+      <a href="/confidentialite/">Politique de confidentialité</a>.
+    </p>
+
+    <div class="form__actions">
+      <button class="btn btn--dark form__submit" type="submit" data-submit>
+        <span class="form__spinner" aria-hidden="true"></span>
+        <span data-submit-label>Envoyer le message</span>
+        <Icon name="arrow" class="arrow" size={16} />
+      </button>
+      <p class="form__status" role="status" aria-live="polite" data-form-status></p>
+    </div>
+  </div>
+
+  <div class="form__success" tabindex="-1" hidden data-form-success>
+    <svg class="bloom" viewBox="0 0 64 64" aria-hidden="true">
+      {[0, 72, 144, 216, 288].map((deg, i) => (
+        <g transform={`rotate(${deg} 32 32)`}>
+          <ellipse class="bloom__petal" style={`--p:${i}`} cx="32" cy="19" rx="8" ry="12.5" />
+        </g>
+      ))}
+      <circle class="bloom__heart" cx="32" cy="32" r="5" />
+    </svg>
+    <h2 class="h3">Merci, votre message est bien parti.</h2>
+    <p class="muted">Nous l’avons reçu et vous répondrons au plus vite, à l’adresse e-mail indiquée.</p>
+    <button type="button" class="btn btn--ghost" data-form-again>Écrire un autre message</button>
+  </div>
+</form>
+
+<script>
+  import { initContactForm } from '../scripts/contact-form.js';
+  initContactForm();
+</script>
+
+<style>
+  .form {
+    display: grid;
+    gap: 28px;
+    scroll-margin-top: calc(var(--header-h) + 24px);
+  }
+
+  .form__head {
+    display: grid;
+    gap: 8px;
+  }
+
+  .form__fields {
+    display: grid;
+    gap: 22px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  @media (max-width: 640px) {
+    .field-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .field {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .field label,
+  .field__label-row {
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .field__label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .req {
+    color: var(--error);
+  }
+
+  .field__optional {
+    margin-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: var(--moss);
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--field);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font-size: 1rem;
+    line-height: 1.4;
+    transition:
+      border-color var(--dur-fast) ease,
+      box-shadow var(--dur-fast) ease,
+      background-color var(--dur-fast) ease;
+  }
+
+  .field textarea {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  .field input:hover,
+  .field textarea:hover,
+  .field select:hover {
+    border-color: var(--sepia);
+  }
+
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-14);
+  }
+
+  .field [aria-invalid='true'] {
+    border-color: var(--error);
+    background: #fffafa;
+  }
+
+  .field [aria-invalid='true']:focus {
+    box-shadow: 0 0 0 3px rgba(155, 44, 31, 0.16);
+  }
+
+  .field.is-valid input,
+  .field.is-valid textarea,
+  .field.is-valid select {
+    border-color: var(--success);
+  }
+
+  .select {
+    position: relative;
+  }
+
+  .select select {
+    appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  .select :global(.select__icon) {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    translate: 0 -50%;
+    rotate: 90deg;
+    pointer-events: none;
+    color: var(--moss);
+  }
+
+  .field__hint {
+    font-size: var(--text-small);
+    color: var(--moss);
+  }
+
+  .field__error {
+    display: grid;
+    grid-template-rows: 0fr;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--error);
+    transition: grid-template-rows var(--dur) var(--ease-out);
+  }
+
+  .field__error:empty {
+    display: none;
+  }
+
+  .field__error:not(:empty) {
+    animation: error-in 260ms var(--ease-out);
+  }
+
+  @keyframes error-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  .field__counter {
+    color: var(--moss);
+    font-weight: 400;
+  }
+
+  .field__counter.is-near {
+    color: var(--error);
+  }
+
+  .form__trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__privacy {
+    font-size: var(--text-small);
+    color: var(--moss);
+  }
+
+  .form__privacy a {
+    color: var(--teal);
+  }
+
+  .form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 24px;
+  }
+
+  .form__submit {
+    min-width: 220px;
+  }
+
+  .form__spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(250, 248, 245, 0.35);
+    border-top-color: var(--parchment);
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+  }
+
+  .form.is-sending .form__spinner {
+    display: inline-block;
+  }
+
+  .form.is-sending .form__submit :global(.arrow) {
+    display: none;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .form__status {
+    font-size: var(--text-small);
+    color: var(--moss);
+  }
+
+  .form__status.is-error {
+    color: var(--error);
+    font-weight: 500;
+  }
+
+  .form__summary {
+    padding: 16px 20px;
+    border-left: 3px solid var(--error);
+    border-radius: var(--radius-sm);
+    background: var(--error-bg);
+    color: var(--error);
+    font-size: 0.9375rem;
+  }
+
+  .form__summary ul {
+    margin: 8px 0 0;
+    padding-left: 1.2em;
+  }
+
+  .form__summary a {
+    color: var(--error);
+  }
+
+  .form__success {
+    display: grid;
+    gap: 16px;
+    justify-items: center;
+    padding: clamp(24px, 5vw, 56px) 0;
+    text-align: center;
+  }
+
+  .form__success:focus {
+    outline: none;
+  }
+
+  /* Une fleur qui s'ouvre : confirme visuellement que l'envoi a réussi. */
+  .bloom {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 8px;
+  }
+
+  .bloom__petal {
+    fill: none;
+    stroke: var(--teal);
+    stroke-width: 1.4;
+    transform-box: view-box;
+    transform-origin: 32px 32px;
+    animation: petal 900ms var(--ease-out) both;
+    animation-delay: calc(var(--p) * 90ms);
+  }
+
+  .bloom__heart {
+    fill: var(--teal);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: heart 600ms var(--ease-out) 500ms both;
+  }
+
+  @keyframes petal {
+    from {
+      opacity: 0;
+      scale: 0.2;
+    }
+  }
+
+  @keyframes heart {
+    from {
+      scale: 0;
+    }
+  }
+</style>

@@ -1,0 +1,197 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import Todo from '../components/Todo.astro';
+import { business } from '../data/site.js';
+
+const [pepiniere] = business.locations;
+const toc = [
+  { id: 'responsable', label: 'Qui est responsable ?' },
+  { id: 'donnees', label: 'Les données collectées' },
+  { id: 'finalites', label: 'Pourquoi, et sur quelle base ?' },
+  { id: 'conservation', label: 'Combien de temps ?' },
+  { id: 'destinataires', label: 'Qui y a accès ?' },
+  { id: 'cookies', label: 'Cookies et mesure d’audience' },
+  { id: 'droits', label: 'Vos droits' },
+  { id: 'securite', label: 'Sécurité' },
+  { id: 'modifications', label: 'Modifications' },
+];
+---
+
+<LegalLayout
+  title="Politique de confidentialité (RGPD) — Comme Une Fleur"
+  description="Quelles données personnelles Comme Une Fleur collecte sur son site, pourquoi, combien de temps, et comment exercer vos droits (RGPD)."
+  crumb="Confidentialité"
+  heading="Vos données, <em>simplement</em>."
+  lead="Ce que nous collectons sur ce site, pourquoi, combien de temps nous le gardons et comment exercer vos droits. Sans jargon, et sans surprise."
+  updated="25 septembre 2026"
+  toc={toc}
+>
+  <p>
+    Cette politique s’applique au site commeunefleur.be. Elle respecte le Règlement général sur la protection des
+    données (RGPD, règlement (UE) 2016/679) et la loi belge du 30 juillet 2018 relative à la protection des personnes
+    physiques à l’égard des traitements de données à caractère personnel. En résumé : nous collectons le strict
+    minimum, nous ne vendons rien, et rien n’est mesuré sans votre accord.
+  </p>
+
+  <h2 id="responsable">1. Qui est responsable de vos données ?</h2>
+  <dl>
+    <dt>Responsable</dt>
+    <dd>{business.name} — <Todo value={business.legal.companyName} label="dénomination et forme juridique à compléter" /></dd>
+    <dt>Adresse</dt>
+    <dd>{pepiniere.street}, {pepiniere.postalCode} {pepiniere.city}, Belgique</dd>
+    <dt>E-mail</dt>
+    <dd><a href={`mailto:${business.email}`}>{business.email}</a></dd>
+    <dt>Téléphone</dt>
+    <dd><a href={`tel:${pepiniere.phone}`}>{pepiniere.phoneDisplay}</a></dd>
+    <dt>N° d’entreprise</dt>
+    <dd><Todo value={business.legal.bce} /></dd>
+  </dl>
+  <p>
+    Compte tenu de notre activité, la désignation d’un délégué à la protection des données n’est pas obligatoire. Pour
+    toute question, écrivez-nous simplement à l’adresse ci-dessus.
+  </p>
+
+  <h2 id="donnees">2. Les données que nous collectons</h2>
+  <h3>Quand vous nous écrivez</h3>
+  <p>
+    Via le formulaire de contact : votre nom, votre adresse e-mail, votre téléphone (facultatif), le sujet de votre
+    demande, une date souhaitée (facultative) et votre message, ainsi que la date d’envoi. Votre adresse IP est
+    utilisée quelques minutes, en mémoire vive uniquement, pour limiter le nombre d’envois et bloquer les robots ; elle
+    n’est jamais enregistrée.
+  </p>
+  <h3>Mesure d’audience, uniquement si vous l’acceptez</h3>
+  <p>
+    La page consultée, le site d’où vous venez (son nom de domaine uniquement), la largeur de votre écran, la langue de
+    votre navigateur et quelques actions utiles (clic sur un numéro de téléphone, un itinéraire, envoi du formulaire).
+    Pour compter les visites sans vous suivre, un identifiant anonyme est calculé sur notre serveur à partir de votre
+    adresse IP et de votre navigateur, mélangés à une clé secrète renouvelée chaque jour puis détruite : il est
+    impossible de vous reconnaître d’un jour à l’autre, et votre adresse IP n’est pas conservée.
+  </p>
+  <h3>Liens cassés</h3>
+  <p>
+    Lorsqu’une page ou une image est introuvable (erreur 404), nous enregistrons l’adresse demandée et la page d’où
+    vous venez, sans aucune information sur vous, afin de réparer le lien.
+  </p>
+  <h3>Votre choix concernant la mesure d’audience</h3>
+  <p>
+    Un identifiant aléatoire, votre choix (accepté ou refusé), sa date et la version de cette politique, pour pouvoir
+    prouver votre consentement comme l’exige le RGPD.
+  </p>
+
+  <h2 id="finalites">3. Pourquoi, et sur quelle base légale ?</h2>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th scope="col">Pourquoi</th><th scope="col">Base légale (RGPD)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Répondre à votre demande : question, devis, commande</td>
+          <td>Mesures précontractuelles prises à votre demande (art. 6.1.b) et intérêt légitime à vous répondre (art. 6.1.f)</td>
+        </tr>
+        <tr>
+          <td>Protéger le formulaire contre le spam et les abus</td>
+          <td>Intérêt légitime (art. 6.1.f)</td>
+        </tr>
+        <tr>
+          <td>Mesurer l’audience pour améliorer le site</td>
+          <td>Votre consentement (art. 6.1.a), retirable à tout moment</td>
+        </tr>
+        <tr>
+          <td>Repérer et réparer les liens cassés</td>
+          <td>Intérêt légitime (art. 6.1.f)</td>
+        </tr>
+        <tr>
+          <td>Prouver votre choix de consentement</td>
+          <td>Obligation légale (art. 6.1.c et 7.1)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Nous ne faisons ni publicité ciblée, ni profilage, ni prise de décision automatisée.</p>
+
+  <h2 id="conservation">4. Combien de temps gardons-nous vos données ?</h2>
+  <ul>
+    <li><strong>Messages du formulaire</strong> : 12 mois après notre dernier échange.</li>
+    <li><strong>Mesure d’audience</strong> : 13 mois au maximum.</li>
+    <li><strong>Adresses introuvables (404)</strong> : 6 mois.</li>
+    <li><strong>Preuve de votre choix</strong> : 13 mois.</li>
+    <li><strong>Adresse IP (anti-spam)</strong> : quelques minutes, en mémoire vive uniquement.</li>
+  </ul>
+  <p>Passé ces délais, les données sont supprimées automatiquement.</p>
+
+  <h2 id="destinataires">5. Qui y a accès ?</h2>
+  <p>
+    Uniquement l’équipe de {business.name}. Vos données ne sont jamais vendues, louées ni cédées. Nous faisons appel à
+    des prestataires techniques qui agissent sur nos instructions :
+  </p>
+  <ul>
+    <li>l’hébergeur du site : <Todo value={business.legal.host} label="nom et adresse de l’hébergeur à compléter" /> ;</li>
+    <li>
+      notre messagerie : les messages du formulaire nous sont transmis par e-mail sur notre boîte Gmail (Google Ireland
+      Limited). Google peut traiter certaines données aux États-Unis, dans le cadre du « EU-US Data Privacy Framework »
+      reconnu par la Commission européenne.
+    </li>
+  </ul>
+
+  <h2 id="cookies">6. Cookies et mesure d’audience</h2>
+  <p>
+    Ce site n’utilise <strong>aucun cookie publicitaire et aucun traceur tiers</strong> : pas de Google Analytics, pas de
+    pixel Facebook. La mesure d’audience est faite par nos soins, sans cookie, et seulement si vous l’acceptez.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th scope="col">Élément</th><th scope="col">À quoi il sert</th><th scope="col">Durée</th><th scope="col">Accord</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>cuf-consent</code> (stockage local du navigateur)</td>
+          <td>Mémoriser votre choix concernant la mesure d’audience</td>
+          <td>6 mois</td>
+          <td>Non requis (strictement nécessaire)</td>
+        </tr>
+        <tr>
+          <td>Mesure d’audience (aucun cookie)</td>
+          <td>Statistiques anonymes de fréquentation</td>
+          <td>13 mois (sur notre serveur)</td>
+          <td>Oui</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Les liens vers Google Maps et Facebook ne chargent rien tant que vous ne cliquez pas dessus ; une fois sur ces
+    sites, leurs propres règles de confidentialité s’appliquent.
+  </p>
+  <p><button type="button" class="btn btn--ghost" data-consent-open>Modifier mes choix</button></p>
+
+  <h2 id="droits">7. Vos droits</h2>
+  <p>
+    Vous pouvez à tout moment demander l’accès à vos données, leur rectification, leur effacement, la limitation de
+    leur traitement ou leur portabilité, et vous opposer à leur traitement. Vous pouvez aussi retirer votre
+    consentement à la mesure d’audience, sans que cela remette en cause ce qui a été fait avant.
+  </p>
+  <p>
+    Pour exercer ces droits, écrivez-nous à <a href={`mailto:${business.email}`}>{business.email}</a> ou par courrier
+    à l’adresse ci-dessus. Nous vous répondrons dans un délai d’un mois.
+  </p>
+  <p>
+    Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de l’Autorité
+    de protection des données : rue de la Presse 35, 1000 Bruxelles —
+    <a href="https://www.autoriteprotectiondonnees.be" rel="noopener" target="_blank">autoriteprotectiondonnees.be<span class="visually-hidden"> (nouvel onglet)</span></a>.
+  </p>
+
+  <h2 id="securite">8. Sécurité</h2>
+  <p>
+    Le site est servi en HTTPS, l’interface d’administration est protégée par un mot de passe, les données collectées
+    sont réduites au minimum et les adresses IP ne sont pas conservées.
+  </p>
+
+  <h2 id="modifications">9. Modifications</h2>
+  <p>
+    Nous pouvons mettre à jour cette politique, par exemple si le site évolue. La date de dernière mise à jour figure en
+    haut de la page. En cas de changement important concernant la mesure d’audience, nous vous redemanderons votre
+    accord.
+  </p>
+</LegalLayout>

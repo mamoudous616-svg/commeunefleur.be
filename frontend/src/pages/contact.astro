@@ -1,0 +1,164 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import ContactForm from '../components/ContactForm.astro';
+import LocationCard from '../components/LocationCard.astro';
+import HoursTable from '../components/HoursTable.astro';
+import OpenStatus from '../components/OpenStatus.astro';
+import Icon from '../components/Icon.astro';
+import { business } from '../data/site.js';
+import { breadcrumb, locations } from '../lib/schema.js';
+---
+
+<BaseLayout
+  title="Contact, adresses et horaires — Comme Une Fleur, Ixelles"
+  description="Écrivez-nous pour un bouquet, un événement ou l’entretien d’un jardin. Pépinière avenue de la Couronne 461 et boutique place Marie-José 2 à Ixelles, ouvertes 7 j/7."
+  image="/og/contact.jpg"
+  jsonLd={[breadcrumb([{ name: 'Contact', path: '/contact/' }]), ...locations]}
+>
+  <PageHero
+    crumb="Contact"
+    eyebrow="contact"
+    title="Parlons de votre <em>projet</em>."
+    lead="Un bouquet à commander, un événement à préparer, un jardin à entretenir ? Écrivez-nous, appelez-nous ou passez nous voir : nous sommes ouverts 7 jours sur 7."
+  />
+
+  <section class="section section--tight contact" aria-label="Formulaire et coordonnées">
+    <div class="wrap contact__grid">
+      <ContactForm />
+
+      <aside class="contact__aside" aria-label="Coordonnées">
+        <div class="card contact__quick">
+          <OpenStatus />
+          <ul class="contact__lines" role="list">
+            {
+              business.locations.map((loc) => (
+                <li>
+                  <span class="mono">{loc.name.toLowerCase()}</span>
+                  <a href={`tel:${loc.phone}`} data-track="call">
+                    <Icon name="phone" size={17} />
+                    {loc.phoneDisplay}
+                  </a>
+                </li>
+              ))
+            }
+            <li>
+              <span class="mono">e-mail</span>
+              <a href={`mailto:${business.email}`} data-track="email">
+                <Icon name="mail" size={17} />
+                {business.email}
+              </a>
+            </li>
+            <li>
+              <span class="mono">facebook</span>
+              <a href={business.social.facebook} target="_blank" rel="noopener" data-track="outbound">
+                <Icon name="facebook" size={17} />
+                commeunefleur.bxl<span class="visually-hidden"> (nouvel onglet)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <p class="eyebrow">horaires</p>
+          <HoursTable />
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section addresses" id="adresses" aria-labelledby="adresses-titre">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow reveal">nos adresses</p>
+        <h2 class="h2 reveal" id="adresses-titre">Deux adresses à Ixelles.</h2>
+        <p class="lead reveal">
+          La pépinière de 1000 m², avenue de la Couronne, et la boutique historique de la place Marie-José.
+        </p>
+      </div>
+      <div class="addresses__grid" data-reveal-group>
+        {business.locations.map((loc) => <LocationCard location={loc} class="reveal" />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .contact__aside {
+    display: grid;
+    gap: 24px;
+    position: sticky;
+    top: 96px;
+  }
+
+  .contact__quick {
+    display: grid;
+    gap: 20px;
+  }
+
+  .contact__lines {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+  }
+
+  .contact__lines li {
+    display: grid;
+    gap: 4px;
+  }
+
+  .contact__lines .mono {
+    color: var(--moss);
+  }
+
+  .contact__lines a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    font-weight: 500;
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  .contact__lines a:hover {
+    text-decoration: underline;
+  }
+
+  .addresses {
+    background: var(--white);
+    scroll-margin-top: 80px;
+  }
+
+  .addresses :global(.location) {
+    background: var(--parchment);
+  }
+
+  .addresses__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  @media (max-width: 960px) {
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact__aside {
+      position: static;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .addresses__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

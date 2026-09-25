@@ -1,0 +1,65 @@
+---
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import Seo from '../components/Seo.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CookieBanner from '../components/CookieBanner.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  bodyClass?: string;
+}
+
+const { title, description, image, imageAlt, noindex = false, jsonLd, bodyClass } = Astro.props;
+
+// Pré-chargement intelligent des pages suivantes (navigateurs compatibles) : navigation quasi instantanée.
+const speculation = JSON.stringify({
+  prerender: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/*.xml' } }] }, eagerness: 'moderate' }],
+});
+---
+
+<!doctype html>
+<html lang="fr-BE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <Font cssVariable="--font-serif" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--font-sans" preload />
+    <Seo
+      title={title}
+      description={description}
+      image={image}
+      imageAlt={imageAlt}
+      noindex={noindex}
+      jsonLd={jsonLd}
+    />
+    <meta name="theme-color" content="#faf8f5" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+    <script type="speculationrules" is:inline set:html={speculation} />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+    <Header />
+    <main id="contenu" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <CookieBanner />
+    <script>
+      import '../scripts/main.js';
+    </script>
+  </body>
+</html>

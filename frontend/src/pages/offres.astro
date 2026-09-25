@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import { offers } from '../data/site.js';
+import { coverFor, photosIn } from '../lib/photos.js';
+import { breadcrumb, organization } from '../lib/schema.js';
+
+const offerSchema = {
+  '@type': 'OfferCatalog',
+  name: 'Offres de Comme Une Fleur',
+  provider: { '@id': organization['@id'] },
+  itemListElement: offers.map((o) => ({
+    '@type': 'Offer',
+    itemOffered: { '@type': 'Service', name: o.title, description: o.intro },
+  })),
+};
+---
+
+<BaseLayout
+  title="Nos offres : bouquets, plantes, pépinière · Comme Une Fleur"
+  description="Bouquets sur mesure, plantes, pépinière de 1000 m², décoration d’événements, entretien de jardins et de tombes, sapins de Noël : nos offres à Ixelles."
+  image="/og/offres.jpg"
+  jsonLd={[breadcrumb([{ name: 'Nos offres', path: '/offres/' }]), offerSchema]}
+>
+  <PageHero
+    crumb="Nos offres"
+    eyebrow="nos offres"
+    title="Des fleurs, des plantes, et tout un <em>jardin</em>."
+    lead="Bouquets sur mesure, plantes, pépinière, événements, entretien et sapins de Noël : tout ce que Comme Une Fleur propose à Ixelles, depuis 2002."
+    haze="fleurs"
+  />
+
+  <nav class="subnav" aria-label="Sommaire des offres" data-subnav>
+    <div class="wrap subnav__inner" data-scroller>
+      {
+        offers.map((o) => (
+          <a class="chip" href={`#${o.id}`}>
+            <span class="mono subnav__index">{o.index}</span>
+            {o.title}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+
+  <div class="offers">
+    {
+      offers.map((offer, i) => {
+        const cover = coverFor(offer.id);
+        const count = photosIn(offer.id).length;
+        // Première offre : visible dès l'ouverture sur mobile → image prioritaire, sans animation d'apparition.
+        const first = i === 0;
+        const reveal = first ? '' : 'reveal';
+        return (
+          <section class:list={['offer', { 'offer--reverse': i % 2 === 1 }]} id={offer.id} aria-labelledby={`${offer.id}-titre`}>
+            <div class="wrap offer__grid">
+              <div class:list={['offer__media', reveal]}>
+                <Photo
+                  photo={cover}
+                  fallback={offer.id}
+                  sizes="(min-width: 1200px) 620px, (min-width: 860px) 52vw, 92vw"
+                  widths={[480, 640, 800, 1080, 1280]}
+                  priority={first}
+                  class="offer__photo"
+                />
+                {count > 0 && (
+                  <a class="link-arrow offer__photos" href={`/?galerie=${offer.id}#galerie`}>
+                    Voir les {count} photo{count > 1 ? 's' : ''} <Icon name="arrow" class="arrow" size={16} />
+                  </a>
+                )}
+              </div>
+              <div class="offer__text">
+                <p class:list={['mono offer__index', reveal]}>/{offer.index}</p>
+                <h2 class:list={['h2', reveal]} id={`${offer.id}-titre`}>{offer.title}</h2>
+                <p class:list={['lead', reveal]}>{offer.intro}</p>
+                <ul class:list={['tag-list', reveal]} role="list">
+                  {offer.items.map((item) => (
+                    <li class="tag">{item}</li>
+                  ))}
+                </ul>
+                <div class={reveal || undefined}>
+                  <a class="btn btn--primary" href={offer.cta.href}>
+                    {offer.cta.label}
+                    <Icon name="arrow" class="arrow" size={16} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })
+    }
+  </div>
+
+  <section class="section offers-cta" aria-labelledby="question-titre">
+    <div class="wrap wrap--narrow offers-cta__inner">
+      <p class="eyebrow reveal">une question ?</p>
+      <h2 class="h2 reveal" id="question-titre">Chaque projet est différent. Parlons du vôtre.</h2>
+      <p class="lead reveal">
+        Racontez-nous l’occasion, vos envies et vos délais : nous revenons vers vous avec une proposition sur mesure.
+      </p>
+      <div class="btn-row reveal">
+        <a class="btn btn--dark" href="/contact/#formulaire">
+          Écrire un message
+          <Icon name="arrow" class="arrow" size={16} />
+        </a>
+        <a class="btn btn--ghost" href="/contact/#adresses">Nos adresses et horaires</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { initScrollspy } from '../scripts/scrollspy.js';
+  initScrollspy('[data-subnav]');
+</script>
+
+<style>
+  .subnav {
+    position: sticky;
+    top: 84px;
+    z-index: 20;
+    margin-bottom: clamp(24px, 4vw, 48px);
+  }
+
+  .subnav__inner {
+    display: flex;
+    justify-content: safe center;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: rgba(250, 248, 245, 0.95);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    backdrop-filter: blur(20px) saturate(1.2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .subnav__inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subnav .chip {
+    flex: none;
+    border-color: transparent;
+    white-space: nowrap;
+  }
+
+  .subnav .chip[aria-current='true'] .subnav__index {
+    color: var(--ash-2);
+  }
+
+  .subnav__index {
+    color: var(--moss);
+    font-size: 0.6875rem;
+  }
+
+  .offer {
+    padding-block: clamp(56px, 8vw, 104px);
+    scroll-margin-top: 150px;
+  }
+
+  .offer__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(40px, 7vw, 112px);
+    align-items: center;
+  }
+
+  .offer--reverse .offer__media {
+    order: 2;
+  }
+
+  .offer__media {
+    display: grid;
+    gap: 16px;
+  }
+
+  .offer__media :global(.offer__photo) {
+    aspect-ratio: 5 / 4;
+    border-radius: var(--radius-card);
+  }
+
+  .offer__photos {
+    justify-self: start;
+    font-size: var(--text-small);
+  }
+
+  .offer__text {
+    display: grid;
+    gap: var(--stack);
+    justify-items: start;
+  }
+
+  .offer__text .h2 {
+    font-size: clamp(2.25rem, 1.5rem + 2.6vw, 3.5rem);
+  }
+
+  .offer__index {
+    color: var(--teal);
+  }
+
+  .tag-list {
+    margin: 0;
+  }
+
+  .offer .tag {
+    background: var(--white);
+  }
+
+  .offers-cta {
+    background: var(--white);
+  }
+
+  .offers-cta__inner {
+    display: grid;
+    gap: var(--stack);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .offers-cta .lead {
+    margin-inline: auto;
+  }
+
+  .offers-cta .btn-row {
+    justify-content: center;
+  }
+
+  @media (max-width: 860px) {
+    .offer__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .offer--reverse .offer__media {
+      order: 0;
+    }
+
+    .subnav {
+      top: 80px;
+    }
+
+    .subnav__inner {
+      width: calc(100% - 24px);
+    }
+  }
+</style>

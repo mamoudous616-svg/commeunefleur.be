@@ -1,0 +1,258 @@
+---
+// Pages juridiques : sommaire qui suit la lecture, barre de progression, texte aéré.
+import BaseLayout from './BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { breadcrumb } from '../lib/schema.js';
+
+interface Props {
+  title: string;
+  description: string;
+  crumb: string;
+  heading: string;
+  lead: string;
+  updated: string;
+  toc: { id: string; label: string }[];
+  image?: string;
+}
+const { title, description, crumb, heading, lead, updated, toc, image } = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={image}
+  jsonLd={breadcrumb([{ name: crumb, path: Astro.url.pathname }])}
+>
+  <div class="progress" aria-hidden="true" data-progress></div>
+  <PageHero crumb={crumb} eyebrow="informations légales" title={heading} lead={lead}>
+    <p class="mono legal__updated">Dernière mise à jour : {updated}</p>
+  </PageHero>
+
+  <div class="wrap legal">
+    <div class="legal__aside">
+      <nav class="legal__toc" aria-label="Sommaire" data-toc>
+        <p class="mono legal__toc-title">sommaire</p>
+        <ol role="list">
+          {
+            toc.map((item, i) => (
+              <li>
+                <a href={`#${item.id}`}>
+                  <span class="mono">{String(i + 1).padStart(2, '0')}</span>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      <!-- Sur mobile : sommaire replié par défaut, pour laisser la place au texte -->
+      <details class="legal__toc-mobile">
+        <summary>Sommaire</summary>
+        <nav aria-label="Sommaire (mobile)">
+          <ol role="list">
+            {
+              toc.map((item, i) => (
+                <li>
+                  <a href={`#${item.id}`}>
+                    <span class="mono">{String(i + 1).padStart(2, '0')}</span>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+      </details>
+    </div>
+    <article class="prose legal__body" data-reading>
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  import { initScrollspy, initReadingProgress } from '../scripts/scrollspy.js';
+  initScrollspy('[data-toc]');
+  initReadingProgress('[data-progress]');
+  // Mobile : un lien du sommaire replie le menu après le saut.
+  document.querySelectorAll('.legal__toc-mobile a').forEach((link) =>
+    link.addEventListener('click', () => link.closest('details')?.removeAttribute('open')),
+  );
+</script>
+
+<style>
+  .progress {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 70;
+    height: 2px;
+    background: var(--teal);
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+  }
+
+  .legal__updated {
+    color: var(--moss);
+  }
+
+  .legal {
+    display: grid;
+    grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+    gap: clamp(40px, 8vw, 120px);
+    align-items: start;
+    padding-bottom: var(--section-y);
+  }
+
+  .legal__aside {
+    position: sticky;
+    top: 100px;
+  }
+
+  .legal__toc-title {
+    margin-bottom: 16px;
+    color: var(--moss);
+  }
+
+  .legal__toc ol,
+  .legal__toc-mobile ol {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .legal__toc a,
+  .legal__toc-mobile a {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0 8px 16px;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    font-size: var(--text-small);
+    color: var(--moss);
+    text-decoration: none;
+    transition:
+      color var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out);
+  }
+
+  .legal__toc a .mono,
+  .legal__toc-mobile a .mono {
+    padding-top: 2px;
+    font-size: 0.6875rem;
+  }
+
+  .legal__toc a:hover,
+  .legal__toc-mobile a:hover {
+    color: var(--sepia);
+  }
+
+  .legal__toc a[aria-current='true'] {
+    color: var(--teal);
+    border-left-color: var(--teal);
+    font-weight: 500;
+  }
+
+  .legal__toc-mobile {
+    display: none;
+    padding: 14px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .legal__toc-mobile summary {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .legal__toc-mobile[open] summary {
+    margin-bottom: 12px;
+  }
+
+  .legal__body {
+    max-width: 68ch;
+  }
+
+  .legal__body > :first-child {
+    margin-top: 0;
+  }
+
+  .legal__body :global(h2) {
+    margin-top: 2.2em;
+  }
+
+  .legal__body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    margin: 1.4em 0;
+  }
+
+  .legal__body :global(th),
+  .legal__body :global(td) {
+    padding: 12px 14px 12px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .legal__body :global(th) {
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .legal__body :global(.table-scroll) {
+    overflow-x: auto;
+  }
+
+  .legal__body :global(.todo) {
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    background: #fff4d6;
+    color: #6b4e00;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .legal__body :global(dl) {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px 24px;
+  }
+
+  .legal__body :global(dt) {
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  .legal__body :global(dd) {
+    margin: 0;
+  }
+
+  @media (max-width: 960px) {
+    .legal {
+      grid-template-columns: 1fr;
+    }
+
+    .legal__aside {
+      position: static;
+    }
+
+    .legal__toc {
+      display: none;
+    }
+
+    .legal__toc-mobile {
+      display: block;
+    }
+
+    .legal__body :global(dl) {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    .legal__body :global(dd) {
+      margin-bottom: 10px;
+    }
+  }
+</style>

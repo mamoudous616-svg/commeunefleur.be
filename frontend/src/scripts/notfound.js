@@ -5,6 +5,10 @@
 import { matchRedirect, normalizePath, pages, suggestPage } from '@cuf/shared/redirects';
 import { beacon } from './config.js';
 
+// Site publié dans un sous-dossier (ex. aperçu GitHub Pages) : les chemins commencent par ce préfixe.
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+const withBase = (path) => (path.startsWith('/') ? `${base}${path}` : path);
+
 export function initNotFound() {
   const box = document.querySelector('[data-suggest]');
   if (!box) return;
@@ -21,12 +25,13 @@ export function initNotFound() {
     ref: document.referrer ? document.referrer.slice(0, 300) : '',
   });
 
-  const path = normalizePath(location.pathname);
+  const path = normalizePath(location.pathname.startsWith(base) ? location.pathname.slice(base.length) || '/' : location.pathname);
   const rule = matchRedirect(path);
   if (rule) {
-    const target = pages.find((p) => p.path === rule.to) ?? { path: rule.to, title: 'la nouvelle page' };
+    const target = pages.find((p) => p.path === rule.to) ??
+      pages.find((p) => p.path === rule.to.split('#')[0]) ?? { path: rule.to, title: 'la nouvelle page' };
     text.textContent = `Cette page a déménagé. Vous allez être redirigé vers « ${target.title} ».`;
-    link.href = rule.to;
+    link.href = withBase(rule.to);
     label.textContent = 'Y aller maintenant';
     box.hidden = false;
 
@@ -40,7 +45,7 @@ export function initNotFound() {
         seconds.textContent = String(left);
         if (left <= 0) {
           window.clearInterval(timer);
-          location.replace(rule.to);
+          location.replace(withBase(rule.to));
         }
       }, 1000);
       cancel.addEventListener('click', () => {
@@ -57,7 +62,7 @@ export function initNotFound() {
   const guess = suggestPage(path);
   if (guess) {
     text.textContent = `Vouliez-vous dire « ${guess.title} » ?`;
-    link.href = guess.path;
+    link.href = withBase(guess.path);
     label.textContent = guess.title;
     box.hidden = false;
   }

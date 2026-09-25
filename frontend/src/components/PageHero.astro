@@ -1,5 +1,6 @@
 ---
-// En-tête des pages intérieures : fil d'Ariane, titre léger, chapô, sur fond parchemin net.
+// En-tête des pages intérieures : fil d'Ariane, titre léger qui arrive mot à mot, chapô, sur fond parchemin net.
+import { splitWords } from '../lib/words.js';
 
 interface Props {
   eyebrow: string;
@@ -19,7 +20,7 @@ const { eyebrow, title, lead, crumb } = Astro.props;
       </ol>
     </nav>
     <p class="eyebrow hero-fade">{eyebrow}</p>
-    <h1 class="display page-hero__title hero-fade" set:html={title} />
+    <h1 class="display page-hero__title words-in" set:html={splitWords(title)} />
     {lead && <p class="lead hero-fade">{lead}</p>}
     <slot />
   </div>
@@ -43,6 +44,11 @@ const { eyebrow, title, lead, crumb } = Astro.props;
 
   .page-hero__title :global(em) {
     font-style: italic;
+  }
+
+  .page-hero__title {
+    --words-delay: 160ms;
+    --words-step: 65ms;
   }
 
   .breadcrumb ol {

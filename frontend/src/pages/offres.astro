@@ -183,6 +183,27 @@ const offerSchema = {
     border-radius: var(--radius-card);
   }
 
+  /* Profondeur au défilement (navigateurs compatibles) : la photo glisse doucement dans son cadre. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .offer__media :global(.photo__img) {
+        scale: 1.1;
+        animation: photo-drift linear both;
+        animation-timeline: view();
+        animation-range: cover;
+      }
+    }
+  }
+
+  @keyframes photo-drift {
+    from {
+      translate: 0 -4%;
+    }
+    to {
+      translate: 0 4%;
+    }
+  }
+
   .offer__photos {
     justify-self: start;
     font-size: var(--text-small);

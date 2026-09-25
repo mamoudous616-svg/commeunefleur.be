@@ -701,6 +701,77 @@ a[href^='tel:'] {
   transform: none;
 }
 
+/* Titres découpés en mots (src/lib/words.js à la construction, reveal.js pour les titres de section).
+   Chaque mot monte de sous une ligne invisible ; la zone découpée déborde pour ne rogner ni les
+   jambages ni l'italique. */
+.word,
+.word__in {
+  display: inline-block;
+}
+
+.word {
+  vertical-align: top;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* À l'ouverture de la page (titres principaux). La découpe s'arrête juste sous les jambages
+   (0,26 em sous la ligne de base, dans la boîte du mot) : rien ne déborde sur le texte qui suit. */
+.words-in .word {
+  clip-path: inset(-0.5em -0.35em -0.06em -0.35em);
+}
+
+.words-in .word__in {
+  animation: word-up 1100ms var(--ease-out) both;
+  animation-delay: calc(var(--words-delay, 120ms) + var(--w, 0) * var(--words-step, 70ms));
+}
+
+@keyframes word-up {
+  from {
+    transform: translate3d(0, 135%, 0) rotate(3deg);
+  }
+}
+
+/* Au défilement (titres de section) : le bloc reste en place, ce sont les mots qui arrivent. */
+.js .reveal.is-split {
+  opacity: 1;
+  transform: none;
+}
+
+.is-split .word {
+  clip-path: inset(-0.5em -0.35em -0.06em -0.35em);
+}
+
+.is-split .word__in {
+  transform: translate3d(0, 135%, 0) rotate(2deg);
+  transition: transform 1000ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 80ms + var(--w, 0) * 38ms);
+}
+
+.is-split.is-visible .word__in {
+  transform: none;
+}
+
+/* Photos dans un bloc qui apparaît : un rideau se lève, la photo se pose. */
+.js .reveal .photo {
+  clip-path: inset(0);
+  transition: clip-path 1100ms var(--ease-out) calc(var(--i, 0) * 80ms + 120ms);
+}
+
+.js .reveal:not(.is-visible) .photo {
+  clip-path: inset(100% 0 0 0);
+}
+
+.js .reveal .photo picture {
+  transition: transform 1600ms var(--ease-out) calc(var(--i, 0) * 80ms + 120ms);
+}
+
+.js .reveal:not(.is-visible) .photo picture {
+  transform: scale(1.16);
+}
+
 /* --------------------------------------------------------------------------
    Transitions entre les pages (navigateurs compatibles)
    -------------------------------------------------------------------------- */

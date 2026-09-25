@@ -2,6 +2,7 @@
 // Page introuvable : propose (ou applique) la bonne adresse, et signale le lien cassé pour qu'on le répare.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import { splitWords } from '../lib/words.js';
 
 const shortcuts = [
   { href: '/', label: 'Accueil', hint: 'La maison, en bref' },
@@ -19,7 +20,7 @@ const shortcuts = [
   <section class="notfound">
     <div class="wrap wrap--narrow notfound__inner">
       <p class="eyebrow">erreur 404</p>
-      <h1 class="display notfound__title">Cette page s’est <em>fanée</em>.</h1>
+      <h1 class="display notfound__title words-in" set:html={splitWords('Cette page s’est <em>fanée</em>.')} />
       <p class="lead">
         Le lien que vous avez suivi est ancien, ou l’adresse contient une petite faute de frappe. Tout le reste du site
         est bien en place.

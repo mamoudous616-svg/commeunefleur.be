@@ -48,10 +48,10 @@ const moodTiles = categories.map((c) => ({ ...c, haze: hazeFor(c.id) }));
         </div>
         <p class="visually-hidden" aria-live="polite" data-gallery-status />
 
-        <ul class="gallery__grid" role="list" data-gallery-grid>
+        <ul class="gallery__grid" role="list" data-gallery-grid data-reveal-group>
           {items.map((p, i) => (
             <li
-              class="gallery__item"
+              class:list={['gallery__item', { reveal: i < INITIAL }]}
               data-category={p.category}
               data-index={i}
               data-avif={p.avif}

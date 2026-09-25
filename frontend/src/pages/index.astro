@@ -10,6 +10,8 @@ import HoursTable from '../components/HoursTable.astro';
 import { business, offers, facts, history } from '../data/site.js';
 import { heroPhoto, heroMosaic, hasPhotos, hasIllustrations, photos, hazeFor } from '../lib/photos.js';
 import { organization, locations, website } from '../lib/schema.js';
+import { splitWords } from '../lib/words.js';
+import BrandMark from '../components/BrandMark.astro';
 
 // Héros, trois cas :
 // - une grande photo de la boutique (≥ 1600 px) : plein écran, nette ;
@@ -25,6 +27,17 @@ const tileWidths = (p) => {
 // Cases visibles selon l'écran : 6 sur téléphone, 8 sur tablette, 10 sur ordinateur.
 const tileClass = (i) => (i >= 8 ? 'hero__tile--desktop' : i >= 6 ? 'hero__tile--tablet' : '');
 const [pepiniere, boutique] = business.locations;
+
+// Chiffres clés qui défilent jusqu'à leur valeur (années : depuis un peu avant ; surfaces : depuis 0).
+const counted = facts.map((fact) => {
+  const m = /^(\d{3,})(.*)$/.exec(fact.value);
+  if (!m) return { ...fact, count: null };
+  const to = Number(m[1]);
+  return { ...fact, count: { to, from: to >= 1900 && to <= 2100 ? to - 22 : 0, suffix: m[2] } };
+});
+
+// Bandeau qui défile entre la présentation et les offres.
+const marquee = ['Bouquets sur mesure', 'Plantes d’intérieur', 'Pépinière de 1000 m²', 'Mariages & événements', 'Entretien de jardins', 'Sapins de Noël'];
 ---
 
 <BaseLayout
@@ -62,14 +75,14 @@ const [pepiniere, boutique] = business.locations;
     <div class="hero__inner wrap">
       <p class="eyebrow hero__eyebrow hero-in" style="--d:0"><span>fleuriste &amp; pépinière ·</span> <span>ixelles · depuis 2002</span></p>
       <h1 class="hero__title" id="hero-title">
-        <span class="display hero-in" style="--d:1">Comme une <em>fleur</em></span>
-        <span class="hero__subtitle hero-in" style="--d:2">Fleuriste &amp; pépinière à Ixelles, Bruxelles</span>
+        <span class="display hero__display words-in" set:html={splitWords('Comme une <em>fleur</em>')} />
+        <span class="hero__subtitle hero-in" style="--d:4">Fleuriste &amp; pépinière à Ixelles, Bruxelles</span>
       </h1>
-      <p class="lead lead--ink hero__lead hero-in" style="--d:3">
-        Un jardin de 1000 m² en plein cœur de Bruxelles : bouquets sur mesure, plantes, arbres et arbustes, à des
+      <p class="lead lead--ink hero__lead hero-in" style="--d:5">
+        Un jardin de 1000 m² en plein cœur de Bruxelles : bouquets sur mesure, plantes, arbres et arbustes, à des
         prix accessibles.
       </p>
-      <div class="btn-row hero__actions hero-in" style="--d:4">
+      <div class="btn-row hero__actions hero-in" style="--d:6">
         <a class="btn btn--primary" href="/offres/">
           Découvrir nos offres
           <Icon name="arrow" class="arrow" size={16} />
@@ -78,7 +91,7 @@ const [pepiniere, boutique] = business.locations;
       </div>
     </div>
 
-    <aside class="hero__card hero-in" style="--d:5" aria-label="Infos pratiques">
+    <aside class="hero__card hero-in" style="--d:7" aria-label="Infos pratiques">
       <OpenStatus />
       <ul class="hero__places" role="list">
         {
@@ -121,20 +134,49 @@ const [pepiniere, boutique] = business.locations;
     <div class="wrap">
       <p class="eyebrow reveal">notre maison</p>
       <h2 class="h2 intro__title reveal" id="intro-title">
-        Plus qu’un fleuriste : une véritable pépinière de 1000 m², installée en plein cœur de Bruxelles.
+        Plus qu’un fleuriste : une véritable pépinière de 1000 m², installée en plein cœur de Bruxelles.
       </h2>
       <dl class="facts" data-reveal-group>
         {
-          facts.map((fact) => (
+          counted.map((fact) => (
             <div class="facts__item reveal">
               <dt class="facts__label">{fact.label}</dt>
-              <dd class="facts__value">{fact.value}</dd>
+              <dd class="facts__value">
+                {fact.count ? (
+                  <>
+                    <span class="visually-hidden">{fact.value}</span>
+                    <span aria-hidden="true" data-count-to={fact.count.to} data-count-from={fact.count.from} data-count-suffix={fact.count.suffix}>
+                      {fact.value}
+                    </span>
+                  </>
+                ) : (
+                  fact.value
+                )}
+              </dd>
             </div>
           ))
         }
       </dl>
     </div>
   </section>
+
+  <!-- Bandeau qui défile (décoratif : les offres sont détaillées juste en dessous) -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      {
+        [0, 1].map(() => (
+          <ul class="marquee__list" role="list">
+            {marquee.map((item) => (
+              <li>
+                <span>{item}</span>
+                <BrandMark size={22} class="marquee__mark" />
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+    </div>
+  </div>
 
   <!-- Offres -->
   <section class="section section--flush-top" aria-labelledby="offres-title">
@@ -496,6 +538,58 @@ const [pepiniere, boutique] = business.locations;
     }
   }
 
+  /* « Comme une fleur » : les mots montent un à un, « fleur » en dernier. */
+  .hero__display {
+    --words-delay: 180ms;
+    --words-step: 120ms;
+  }
+
+  /* Ouverture façon cinéma : la photo se pose lentement (léger recul). */
+  .hero--photo .hero__bg :global(img) {
+    animation: hero-settle 2800ms var(--ease-out) both;
+  }
+
+  @keyframes hero-settle {
+    from {
+      transform: scale(1.12);
+    }
+  }
+
+  /* Au défilement (navigateurs compatibles) : la photo s'éloigne plus lentement que la page,
+     le texte s'efface en montant. Donne de la profondeur sans script. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero {
+        view-timeline-name: --hero;
+      }
+
+      .hero--photo .hero__bg {
+        animation: hero-depth linear both;
+        animation-timeline: --hero;
+        animation-range: exit 0% exit 100%;
+      }
+
+      .hero--photo .hero__inner {
+        animation: hero-away linear both;
+        animation-timeline: --hero;
+        animation-range: exit 0% exit 75%;
+      }
+    }
+  }
+
+  @keyframes hero-depth {
+    to {
+      transform: translate3d(0, 24%, 0) scale(1.06);
+    }
+  }
+
+  @keyframes hero-away {
+    to {
+      opacity: 0;
+      transform: translate3d(0, -10vh, 0);
+    }
+  }
+
   .hero__card {
     position: absolute;
     left: 50%;
@@ -656,6 +750,7 @@ const [pepiniere, boutique] = business.locations;
   }
 
   .facts__value {
+    font-variant-numeric: tabular-nums;
     font-family: var(--font-serif);
     font-size: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
     white-space: nowrap;
@@ -692,6 +787,65 @@ const [pepiniere, boutique] = business.locations;
     .facts__item:nth-child(n + 3) {
       margin-top: 32px;
       border-top: 1px solid var(--line);
+    }
+  }
+
+  /* ---------- Bandeau qui défile ---------- */
+  .marquee {
+    margin-bottom: clamp(72px, 10vw, 136px);
+    padding-block: clamp(22px, 3vw, 34px);
+    border-block: 1px solid var(--line);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 56s linear infinite;
+  }
+
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee__list {
+    display: flex;
+    flex: none;
+    margin: 0;
+  }
+
+  .marquee__list li {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 3.4vw, 48px);
+    padding-right: clamp(24px, 3.4vw, 48px);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--slate);
+    white-space: nowrap;
+  }
+
+  .marquee__list :global(.marquee__mark) {
+    flex: none;
+    color: var(--moss);
+    animation: mark-spin 18s linear infinite;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes mark-spin {
+    to {
+      transform: rotate(360deg);
     }
   }
 
@@ -805,6 +959,19 @@ const [pepiniere, boutique] = business.locations;
     border-radius: 50%;
     background: var(--parchment);
     z-index: 1;
+  }
+
+  /* Chaque étape s'allume quand elle arrive à l'écran. */
+  :global(.js) .timeline__step.reveal::before {
+    transform: scale(0);
+    transition:
+      transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 250ms,
+      background-color 700ms var(--ease-out) 250ms;
+  }
+
+  :global(.js) .timeline__step.reveal.is-visible::before {
+    transform: none;
+    background: var(--teal);
   }
 
   .timeline__when {

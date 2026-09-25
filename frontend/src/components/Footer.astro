@@ -61,7 +61,7 @@ const year = new Date().getFullYear();
       </ul>
     </div>
   </div>
-  <svg class="site-footer__wordmark" viewBox="0 0 1000 150" aria-hidden="true" focusable="false">
+  <svg class="site-footer__wordmark reveal" viewBox="0 0 1000 150" aria-hidden="true" focusable="false">
     <text x="500" y="128" text-anchor="middle" textLength="990" lengthAdjust="spacing">Comme une fleur</text>
   </svg>
 </footer>
@@ -210,5 +210,23 @@ const year = new Date().getFullYear();
     font-size: 150px;
     letter-spacing: -0.03em;
     fill: #161614;
+    stroke: rgba(229, 229, 227, 0);
+    stroke-width: 0.8px;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+
+  /* Le nom se dessine au trait, comme à l'encre, puis se remplit quand on arrive en bas de page. */
+  :global(.js) .site-footer__wordmark.reveal text {
+    transition:
+      stroke-dashoffset 2600ms var(--ease-in-out),
+      fill 1400ms ease 1500ms,
+      stroke 1200ms ease 2100ms;
+  }
+
+  :global(.js) .site-footer__wordmark.reveal:not(.is-visible) text {
+    fill: rgba(22, 22, 20, 0);
+    stroke: rgba(229, 229, 227, 0.45);
+    stroke-dashoffset: 1000;
   }
 </style>

@@ -74,16 +74,17 @@ export function initReveal() {
     el.textContent = `${el.dataset.countFrom || 0}${el.dataset.countSuffix || ''}`;
   });
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('is-visible');
-        entry.target.querySelectorAll('[data-count-to]').forEach(countUp);
-        observer.unobserve(entry.target);
-      }
-    },
-    { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
-  );
-  items.forEach((el) => observer.observe(el));
+  const show = (entries, observer) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add('is-visible');
+      entry.target.querySelectorAll('[data-count-to]').forEach(countUp);
+      observer.unobserve(entry.target);
+    }
+  };
+  // Les blocs apparaissent une fois bien entrés à l'écran (un peu au-dessus du bord bas) ; ceux tout
+  // en bas de page (data-reveal-edge) dès qu'ils sont visibles, sinon ils n'atteindraient jamais ce seuil.
+  const observer = new IntersectionObserver(show, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  const edgeObserver = new IntersectionObserver(show, { threshold: 0.2 });
+  items.forEach((el) => (el.hasAttribute('data-reveal-edge') ? edgeObserver : observer).observe(el));
 }
